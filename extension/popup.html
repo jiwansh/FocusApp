@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arbor Blocker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container" id="popup-app">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="logo-area">
+        <span class="logo-icon">🌳</span>
+        <h1>Arbor focus</h1>
+      </div>
+      <button class="settings-btn" id="go-to-options" title="Configure options">⚙️</button>
+    </header>
+
+    <!-- Main Section -->
+    <main class="popup-main">
+      <!-- Active Focus State -->
+      <section id="timer-active-section" class="timer-section hidden">
+        <div class="tree-canvas-container">
+          <div class="tree-visualizer" id="active-tree-display">🌱</div>
+          <div class="tree-level-label" id="active-tree-label">Growing Seedling...</div>
+        </div>
+
+        <div class="countdown-container">
+          <div class="timer-digits" id="countdown-digits">25:00</div>
+          <p class="timer-subtext">Focus active. Distractions are blocked.</p>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-danger" id="cancel-focus-btn">Yield (Give Up)</button>
+        </div>
+      </section>
+
+      <!-- Setup Focus State -->
+      <section id="timer-setup-section" class="timer-section">
+        <p class="setup-heading">Plant a Seed</p>
+        
+        <div class="tree-selector-grid">
+          <button class="tree-select-item active" data-tree="oak">
+            <span class="tree-icon">🌳</span>
+            <span class="tree-name">Oak</span>
+          </button>
+          <button class="tree-select-item" data-tree="bonsai">
+            <span class="tree-icon">🪴</span>
+            <span class="tree-name">Bonsai</span>
+          </button>
+          <button class="tree-select-item" data-tree="cedar">
+            <span class="tree-icon">🌲</span>
+            <span class="tree-name">Cedar</span>
+          </button>
+          <button class="tree-select-item" data-tree="bamboo">
+            <span class="tree-icon">🎋</span>
+            <span class="tree-name">Bamboo</span>
+          </button>
+        </div>
+
+        <!-- Pre-sets -->
+        <div class="preset-row">
+          <button class="preset-btn active" data-mins="25">25 Min</button>
+          <button class="preset-btn" data-mins="50">50 Min</button>
+          <button class="preset-btn" data-mins="90">90 Min</button>
+          <button class="preset-btn" id="custom-preset-btn" data-mins="custom">Custom</button>
+        </div>
+
+        <!-- Custom slider (only visible if custom selected) -->
+        <div class="custom-input-container hidden" id="custom-slider-area">
+          <div class="slider-header">
+            <span>Duration:</span>
+            <span id="custom-mins-val">30 mins</span>
+          </div>
+          <input type="range" id="custom-duration-slider" min="5" max="180" step="5" value="30">
+        </div>
+
+        <button class="btn btn-primary" id="start-focus-btn">Sow a Seed</button>
+      </section>
+    </main>
+
+    <!-- Footer Stats -->
+    <footer class="popup-footer">
+      <div class="stat-pill" title="Current Daily Streak">
+        <span class="stat-icon">🔥</span>
+        <span class="stat-value" id="stat-streak">0 days</span>
+      </div>
+      <div class="stat-pill" title="Total XP Earned">
+        <span class="stat-icon">⭐</span>
+        <span class="stat-value" id="stat-xp">0 XP</span>
+      </div>
+      <div class="stat-pill" title="Total Focused Minutes">
+        <span class="stat-icon">⏱️</span>
+        <span class="stat-value" id="stat-minutes">0m</span>
+      </div>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

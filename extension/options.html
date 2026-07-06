@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arbor Blocker - Advanced Configurations</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <!-- Navbar / Sidebar header -->
+    <header class="options-header">
+      <div class="brand">
+        <span class="brand-icon">🌳</span>
+        <div>
+          <h2>Arbor Blocker</h2>
+          <p>Productivity System & Digital Forest</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="export-settings-btn">📤 Export JSON</button>
+        <button class="btn btn-secondary" id="import-settings-btn">📥 Import JSON</button>
+        <input type="file" id="import-file-input" accept=".json" class="hidden">
+      </div>
+    </header>
+
+    <div class="options-layout">
+      <!-- Left column: Lists and Rules -->
+      <main class="options-main">
+        <!-- Site configuration Section -->
+        <section class="card config-card">
+          <div class="tabs-header">
+            <button class="tab-btn active" data-tab="tab-blocklist">🚫 Blocklist</button>
+            <button class="tab-btn" data-tab="tab-allowlist">✅ Productive Allowlist</button>
+            <button class="tab-btn" data-tab="tab-exceptions">🎓 Smart Exceptions</button>
+          </div>
+
+          <div class="tab-contents">
+            <!-- Blocklist tab -->
+            <div id="tab-blocklist" class="tab-pane active">
+              <p class="tab-desc">These websites are totally blocked during any active focus session. Attempts to open them will be redirected to your motivational page.</p>
+              
+              <div class="add-site-row">
+                <input type="text" id="new-blocked-site" placeholder="e.g. reddit.com or x.com" class="text-input">
+                <button class="btn btn-accent" id="add-blocked-btn">Add Domain</button>
+              </div>
+
+              <div id="blocked-status-msg" class="status-alert hidden"></div>
+
+              <ul id="blocked-list" class="site-records-list">
+                <!-- Javascript loaded -->
+              </ul>
+            </div>
+
+            <!-- Allowlist tab -->
+            <div id="tab-allowlist" class="tab-pane">
+              <p class="tab-desc">These websites are designated as productive. They are exempt from blocks, and you can access them freely. They will also show up as quick shortcut helpers on your Redirect/Block screen!</p>
+              
+              <div class="add-site-row">
+                <input type="text" id="new-allowed-site" placeholder="e.g. github.com or docs.oracle.com" class="text-input">
+                <button class="btn btn-accent" id="add-allowed-btn">Add Productive</button>
+              </div>
+
+              <ul id="allowed-list" class="site-records-list">
+                <!-- Javascript loaded -->
+              </ul>
+            </div>
+
+            <!-- Exception tab -->
+            <div id="tab-exceptions" class="tab-pane">
+              <p class="tab-desc">Exceptions allow specific elements of blocked websites to load anyway. For example, block <strong>youtube.com</strong> but allow certain channels or specific playlists!</p>
+              
+              <div class="add-site-row">
+                <input type="text" id="new-exception-path" placeholder="e.g. youtube.com/c/takeuforward" class="text-input">
+                <button class="btn btn-accent" id="add-exception-btn">Add Exception</button>
+              </div>
+
+              <ul id="exceptions-list" class="site-records-list">
+                <!-- Javascript loaded -->
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Block Experience customization -->
+        <section class="card config-card">
+          <h3>Custom Redirect Experience</h3>
+          <p class="tab-desc">Personalize what you see when a website gets blocked. Stay motivated, not annoyed!</p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="setting-redirect-title" class="form-label">Motivational Title</label>
+              <input type="text" id="setting-redirect-title" class="text-input" placeholder="Get Back to Work!">
+            </div>
+
+            <div class="form-group text-span-2">
+              <label for="setting-redirect-sub" class="form-label">Sub-headline / Encouragement</label>
+              <textarea id="setting-redirect-sub" class="text-input textarea-input" rows="2" placeholder="Your tree is relying on you..."></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-12" id="save-experience-btn">Save Redirect Options</button>
+        </section>
+      </main>
+
+      <!-- Right column: Parameters and Statistics -->
+      <aside class="options-sidebar">
+        <!-- Setup Settings -->
+        <section class="card config-card">
+          <h3>Focus Setting Modules</h3>
+          
+          <div class="setting-toggle-row">
+            <div>
+              <span class="setting-title">Strict Blocker Mode</span>
+              <p class="setting-desc">Active dynamic rules prevent all edits to blocked/allowed site lists during active cycles.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-strict-mode">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-toggle-row">
+            <div>
+              <span class="setting-title">Sound Effects</span>
+              <p class="setting-desc">Play chime notification sounds when a focus session finishes successfully.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-sound-enabled">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Stats overview -->
+        <section class="card config-card stats-card">
+          <h3>Cumulative Achievements</h3>
+
+          <div class="achievement-metric-grid">
+            <div class="metric-item">
+              <span class="metric-val" id="sb-stat-sessions">0</span>
+              <span class="metric-lbl">Grown Trees</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-val" id="sb-stat-minutes">0m</span>
+              <span class="metric-lbl">Total Focus</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-val" id="sb-stat-streak">0 🔥</span>
+              <span class="metric-lbl">Current Streak</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-val" id="sb-stat-best">0 🔥</span>
+              <span class="metric-lbl">Best Streak</span>
+            </div>
+            <div class="metric-item text-span-2">
+              <span class="metric-val" id="sb-stat-distractions">0</span>
+              <span class="metric-lbl">Blocked Distraction Attempts</span>
+            </div>
+          </div>
+
+          <button class="btn btn-danger-line" id="reset-stats-btn">Reset All Statistics</button>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Chrome Focus Extension Workspace",
+  "description": "Interactive developer workspace, simulator, and single-click exporter for a Forest-style Chrome website blocker with real-time tree growth gamification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

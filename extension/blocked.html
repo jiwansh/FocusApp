@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PADH LO BETA! - Arbor Blocker</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="block-overlay-container">
+    <div class="block-card danger-card">
+      <!-- Top Badging -->
+      <header class="block-brand">
+        <span class="block-logo">🚨</span>
+        <h1>Arbor Blocker</h1>
+        <span class="lock-tag pause-tag">TIMER PAUSED</span>
+      </header>
+
+      <!-- Center Meme / Funny Warning Area -->
+      <div class="meme-stage">
+        <div class="meme-emoji">🤫🤫🤫</div>
+        <h1 class="meme-headline">पढ़ लो बेटा!</h1>
+        <h2 class="meme-subheadline">PADH LO BETA!</h2>
+        <p class="meme-text">
+          Distraction detected. Your session is <strong>PAUSED</strong> and this alarm will beep until you close this distracting tab!
+        </p>
+        <div class="sound-alert-bar" id="sound-status-notice">
+          🔊 Click anywhere to activate/mute study alarm beep!
+        </div>
+      </div>
+
+      <!-- Center Tree Stage Display (Withered or crying) -->
+      <div class="focus-illustration-area">
+        <div class="active-focus-tree-eco crying-tree" id="blocked-tree-display">😢</div>
+        <p class="growth-subheading withered-tag" id="blocked-tree-label">Your tree is crying! Go back to work!</p>
+      </div>
+
+      <!-- Timer clock -->
+      <div class="live-stopwatch">
+        <div class="remaining-minutes" id="blocked-timer">--:--</div>
+        <p class="stopwatch-descriptor">SESSION PAUSED & LOCKED</p>
+      </div>
+
+      <!-- Allowed shortcuts panel -->
+      <div class="allowed-shortcuts-section">
+        <h3>🚀 Productive Shortcuts</h3>
+        <p class="shortcuts-desc">Go to these instead if you need them:</p>
+        <div class="shortcuts-grid" id="blocked-allowed-shortcuts">
+          <!-- Populated from storage in js -->
+        </div>
+      </div>
+
+      <!-- Footnote -->
+      <footer class="block-footer">
+        <p>Arbor Blocker — Close this tab to resume focus! 🌳</p>
+      </footer>
+    </div>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>
