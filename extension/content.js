@@ -1,6 +1,7 @@
 /**
- * Arbor Blocker - Floating Timer Widget Content Script
- * Injects a draggable, floatable timer widget on all webpages during active focus.
+ * Arbor Blocker - Floating Circular Timer Widget Content Script
+ * Injects a draggable, glassmorphic circular timer widget with breathing animations, 
+ * adaptive ring strokes, and automatic pause/resume state management.
  */
 
 (function () {
@@ -10,14 +11,7 @@
   let countdownInterval = null;
   let activeSession = null;
   let isMinimized = false;
-
-  // Track Tree Emojis
-  const treeAvatars = {
-    oak: '🌳',
-    bonsai: '🪴',
-    cedar: '🌲',
-    bamboo: '🎋'
-  };
+  let isRemoving = false;
 
   // Helper to verify that the extension runtime context is valid
   function isContextValid() {
@@ -28,6 +22,7 @@
   function safeStorageGet(keys) {
     return new Promise((resolve) => {
       if (!isContextValid()) {
+        removeWidgetDOM();
         resolve({});
         return;
       }
@@ -36,7 +31,7 @@
           resolve(result || {});
         });
       } catch (e) {
-        console.warn("Arbor Blocker: Context invalidated or failed to get storage.", e);
+        removeWidgetDOM();
         resolve({});
       }
     });
@@ -45,23 +40,26 @@
   // Safe wrapper for chrome.storage.local.set
   function safeStorageSet(data) {
     if (!isContextValid()) {
-      console.warn("Arbor Blocker: Context invalidated, cannot save settings. Please refresh the page.");
+      removeWidgetDOM();
       return;
     }
     try {
       chrome.storage.local.set(data);
     } catch (e) {
-      console.warn("Arbor Blocker: Context invalidated or failed to set storage.", e);
+      removeWidgetDOM();
     }
   }
 
   // Safe wrapper for chrome.runtime.getURL
   function safeGetURL(path) {
-    if (!isContextValid()) return '';
+    if (!isContextValid()) {
+      removeWidgetDOM();
+      return '';
+    }
     try {
       return chrome.runtime.getURL(path);
     } catch (e) {
-      console.warn("Arbor Blocker: Context invalidated or failed to get URL.", e);
+      removeWidgetDOM();
       return '';
     }
   }
@@ -72,7 +70,10 @@
   // 2. Listen to storage modifications (to dynamically show/hide or pause/resume)
   if (isContextValid()) {
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (!isContextValid()) return;
+      if (!isContextValid()) {
+        removeWidgetDOM();
+        return;
+      }
       if (area === 'local') {
         if (changes.focusSession) {
           activeSession = changes.focusSession.newValue;
@@ -100,12 +101,19 @@
         countdownInterval = setInterval(updateWidgetTick, 1000);
       }
     } else {
-      removeWidgetDOM();
+      // If session completed naturally, let updateWidgetTick handle the bloom animation.
+      // Otherwise, remove DOM immediately.
+      if (activeSession && activeSession.progress === 100) {
+        playBloomAndRemove();
+      } else {
+        removeWidgetDOM();
+      }
     }
   }
 
   function createWidgetDOM() {
     if (widgetRoot) return; // Already exists
+    isRemoving = false;
 
     // Create Root Node
     widgetRoot = document.createElement('div');
@@ -127,19 +135,60 @@
     card.id = 'arbor-card';
     if (isMinimized) card.classList.add('arbor-minimized');
     
-    // Add internal HTML elements
+    // Semantic structure with progress SVG and stackable content
     card.innerHTML = `
-      <span class="arbor-tree-avatar" id="arbor-avatar">🌱</span>
-      <div class="arbor-timer-info">
+      <!-- Circular SVG Progress Ring -->
+      <svg class="arbor-progress-svg" viewBox="0 0 140 140">
+        <defs>
+          <linearGradient id="arbor-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2dd4bf" />
+            <stop offset="100%" stop-color="#0d9488" />
+          </linearGradient>
+          <linearGradient id="arbor-ring-paused" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fbbf24" />
+            <stop offset="100%" stop-color="#d97706" />
+          </linearGradient>
+          <linearGradient id="arbor-ring-break" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60a5fa" />
+            <stop offset="100%" stop-color="#2563eb" />
+          </linearGradient>
+        </defs>
+        <circle class="arbor-progress-track" cx="70" cy="70" r="62" fill="none" stroke-width="4"></circle>
+        <circle class="arbor-progress-bar" cx="70" cy="70" r="62" fill="none" stroke-width="4" transform="rotate(-90 70 70)"></circle>
+      </svg>
+
+      <!-- Interactive Inner Stack -->
+      <div class="arbor-inner-content">
         <span class="arbor-time-countdown" id="arbor-countdown">--:--</span>
-        <span class="arbor-status-label" id="arbor-status">Focusing</span>
-      </div>
-      <div class="arbor-widget-actions">
-        <button class="arbor-action-btn" id="arbor-min-btn" title="Minimize/Maximize">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
+        
+        <!-- Premium inline-vector plant seedling -->
+        <div class="arbor-plant-container">
+          <svg class="arbor-plant-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="plant-stem" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#78350f" />
+                <stop offset="100%" stop-color="#451a03" />
+              </linearGradient>
+              <linearGradient id="leaf-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#34d399" />
+                <stop offset="100%" stop-color="#059669" />
+              </linearGradient>
+              <linearGradient id="leaf-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#047857" />
+              </linearGradient>
+            </defs>
+            <!-- Soil base -->
+            <ellipse cx="50" cy="80" rx="18" ry="5" fill="#5c2e0b" opacity="0.35" />
+            <!-- Stem -->
+            <path d="M50 80 Q 50 48 48 35" stroke="url(#plant-stem)" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <!-- Leaves -->
+            <path d="M48 35 C 32 32 28 48 48 54 C 49 44 38 39 48 35 Z" fill="url(#leaf-grad-1)" />
+            <path d="M48 35 C 64 30 68 46 48 52 C 47 42 58 37 48 35 Z" fill="url(#leaf-grad-2)" />
           </svg>
-        </button>
+        </div>
+
+        <span class="arbor-status-label" id="arbor-status">Focus</span>
       </div>
     `;
 
@@ -149,16 +198,7 @@
     // Add drag support (Drag Card to move the root container)
     makeDraggable(card, widgetRoot);
 
-    // Setup Toggle Minimize button
-    const minBtn = card.querySelector('#arbor-min-btn');
-    if (minBtn) {
-      minBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleMinimize();
-      });
-    }
-
-    // Double click card to minimize/maximize as well
+    // Double click card to minimize/maximize (restores on double click)
     card.addEventListener('dblclick', toggleMinimize);
 
     // Retrieve and apply last saved coordinates
@@ -169,8 +209,8 @@
         let checkedX = x;
         let checkedY = y;
         
-        const cardWidth = 150;
-        const cardHeight = 80;
+        const cardWidth = 140;
+        const cardHeight = 140;
         
         if (typeof checkedX !== 'number' || checkedX < 10 || checkedX > window.innerWidth - cardWidth) {
           checkedX = window.innerWidth - cardWidth - 24;
@@ -200,6 +240,25 @@
     }
   }
 
+  function playBloomAndRemove() {
+    if (isRemoving) return;
+    isRemoving = true;
+
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+
+    if (widgetCard) {
+      widgetCard.classList.add('arbor-completed');
+    }
+
+    setTimeout(() => {
+      removeWidgetDOM();
+      isRemoving = false;
+    }, 800); // 800ms completes CSS bloom transition
+  }
+
   function toggleMinimize() {
     isMinimized = !isMinimized;
     safeStorageSet({ widgetMinimized: isMinimized });
@@ -213,31 +272,38 @@
   }
 
   function updateWidgetTick() {
-    if (!shadowRoot || !activeSession || !widgetCard) return;
+    if (!shadowRoot || !activeSession || !widgetCard || isRemoving) return;
 
-    // Query relative to the widgetCard reference for maximum reliability
     const countdown = widgetCard.querySelector('#arbor-countdown');
-    const avatar = widgetCard.querySelector('#arbor-avatar');
     const statusLabel = widgetCard.querySelector('#arbor-status');
+    const progressBar = widgetCard.querySelector('.arbor-progress-bar');
 
     let remainingMs;
+    const isBreak = activeSession.isBreak || activeSession.treeType === 'break';
+
     if (activeSession.isPaused) {
       remainingMs = activeSession.remainingTime;
       widgetCard.classList.add('arbor-paused');
-      if (statusLabel) statusLabel.textContent = 'PADH LO BETA!';
-      if (avatar) avatar.textContent = '😢';
+      widgetCard.classList.remove('arbor-break');
+      if (statusLabel) statusLabel.textContent = 'Paused';
+    } else if (isBreak) {
+      remainingMs = activeSession.endTime - Date.now();
+      widgetCard.classList.remove('arbor-paused');
+      widgetCard.classList.add('arbor-break');
+      if (statusLabel) statusLabel.textContent = 'Break';
     } else {
       remainingMs = activeSession.endTime - Date.now();
       widgetCard.classList.remove('arbor-paused');
-      if (statusLabel) statusLabel.textContent = 'Focusing';
-      if (avatar) avatar.textContent = treeAvatars[activeSession.treeType] || '🌳';
+      widgetCard.classList.remove('arbor-break');
+      if (statusLabel) statusLabel.textContent = 'Focus';
     }
 
     if (remainingMs <= 0) {
-      removeWidgetDOM();
+      playBloomAndRemove();
       return;
     }
 
+    // Format Countdown digits
     const totalSecs = Math.max(0, Math.floor(remainingMs / 1000));
     const secs = totalSecs % 60;
     const mins = Math.floor(totalSecs / 60);
@@ -247,6 +313,20 @@
 
     if (countdown) {
       countdown.textContent = `${padMins}:${padSecs}`;
+    }
+
+    // SVG Progress Bar Math
+    const totalDurationSeconds = activeSession.duration * 60;
+    const elapsedSeconds = totalDurationSeconds - totalSecs;
+    const progressPercent = totalDurationSeconds > 0 ? Math.min(1, Math.max(0, elapsedSeconds / totalDurationSeconds)) : 0;
+
+    const radius = 62;
+    const circumference = 2 * Math.PI * radius; // ~389.55
+    const offset = circumference * (1 - progressPercent);
+
+    if (progressBar) {
+      progressBar.style.strokeDasharray = `${circumference}`;
+      progressBar.style.strokeDashoffset = `${offset}`;
     }
   }
 
@@ -258,7 +338,7 @@
 
     function dragMouseDown(e) {
       e = e || window.event;
-      // Prevent drag if click is on buttons
+      // Prevent drag if click is on SVG progress or minimize button details
       if (e.target.closest('.arbor-action-btn')) return;
       
       e.preventDefault();

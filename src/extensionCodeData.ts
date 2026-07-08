@@ -440,9 +440,9 @@ async function updateTimerBadge() {
             <span class="tree-icon">🌳</span>
             <span class="tree-name">Oak</span>
           </button>
-          <button class="tree-select-item" data-tree="bonsai">
-            <span class="tree-icon">🪴</span>
-            <span class="tree-name">Bonsai</span>
+          <button class="tree-select-item" data-tree="sunflower">
+            <span class="tree-icon">🌻</span>
+            <span class="tree-name">Sunflower</span>
           </button>
           <button class="tree-select-item" data-tree="cedar">
             <span class="tree-icon">🌲</span>
@@ -522,7 +522,7 @@ async function updateTimerBadge() {
 
   const treeStages = {
     oak:    ['🌱', '🌿', '🌳', '🌳✨'],
-    bonsai: ['🌱', '🪴', '🪴', '🪴✨'],
+    sunflower: ['🌱', '🌻', '🌻', '🌻✨'],
     cedar:  ['🌱', '🌿', '🌲', '🌲✨'],
     bamboo: ['🌱', '🎋', '🎋', '🎋✨']
   };
@@ -1607,7 +1607,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
   const treeStages = {
     oak:    ['🌱', '🌿', '🌳', '🌳✨'],
-    bonsai: ['🌱', '🪴', '🪴', '🪴✨'],
+    sunflower: ['🌱', '🌻', '🌻', '🌻✨'],
     cedar:  ['🌱', '🌿', '🌲', '🌲✨'],
     bamboo: ['🌱', '🎋', '🎋', '🎋✨']
   };

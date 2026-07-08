@@ -6,7 +6,7 @@ Arbor Blocker is a lightweight, gamified focus companion designed for Chrome and
 
 ## 🚀 Core Features
 
-- **🌳 Real-Time Tree Growth:** Choose your focus seeds (Oak, Cedar, Bonsai, Bamboo) and nurture them. If you cancel focus, your tree withers.
+- **🌳 Real-Time Tree Growth:** Choose your focus seeds (Oak, Cedar, Sunflower, Bamboo) and nurture them. If you cancel focus, your tree withers.
 - **🚫 "Padh Lo Beta!" Redirects:** Instantly intercepts visits to blocked domains (like `x.com` or `instagram.com`) and displays a funny Hindi warning alert card ("पढ़ लो बेटा!").
 - **🔊 Auto-Pause & Synthesized Beeping:** 
   * Pauses the active focus session when a blocked page is open.

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Tree Visual Stage Mapping
   const treeStages = {
     oak:    ['🌱', '🌿', '🌳', '🌳✨'],
-    bonsai: ['🌱', '🪴', '🪴', '🪴✨'],
+    sunflower: ['🌱', '🌻', '🌻', '🌻✨'],
     cedar:  ['🌱', '🌿', '🌲', '🌲✨'],
     bamboo: ['🌱', '🎋', '🎋', '🎋✨']
   };

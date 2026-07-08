@@ -82,7 +82,7 @@ export default function App() {
     startTime: number | null;
     endTime: number | null;
     duration: number;
-    treeType: 'oak' | 'bonsai' | 'cedar' | 'bamboo';
+    treeType: 'oak' | 'sunflower' | 'cedar' | 'bamboo';
     progress: number;
   }>({
     isActive: false,
@@ -135,7 +135,7 @@ export default function App() {
   const [notification, setNotification] = useState<{ title: string; text: string } | null>(null);
 
   // --- Popup Setup states ---
-  const [selectedSetupTree, setSelectedSetupTree] = useState<'oak' | 'bonsai' | 'cedar' | 'bamboo'>('oak');
+  const [selectedSetupTree, setSelectedSetupTree] = useState<'oak' | 'sunflower' | 'cedar' | 'bamboo'>('oak');
   const [selectedSetupMins, setSelectedSetupMins] = useState<number>(25);
   const [isCustomSetup, setIsCustomSetup] = useState<boolean>(false);
   const [customSliderMins, setCustomSliderMins] = useState<number>(30);
@@ -165,7 +165,7 @@ export default function App() {
   // Tree Visual Stage Mapping
   const treeStages = {
     oak:    ['🌱', '🌿', '🌳', '🌳✨'],
-    bonsai: ['🌱', '🪴', '🪴', '🪴✨'],
+    sunflower: ['🌱', '🌻', '🌻', '🌻✨'],
     cedar:  ['🌱', '🌿', '🌲', '🌲✨'],
     bamboo: ['🌱', '🎋', '🎋', '🎋✨']
   };
@@ -178,7 +178,7 @@ export default function App() {
   ];
 
   // Logic: Calculate tree visual stage based on elapsed progress ratio
-  const getTreeVisual = (type: 'oak' | 'bonsai' | 'cedar' | 'bamboo', pct: number) => {
+  const getTreeVisual = (type: 'oak' | 'sunflower' | 'cedar' | 'bamboo', pct: number) => {
     const list = treeStages[type] || treeStages.oak;
     if (pct < 10) return { icon: list[0], label: "Planted Seedling" };
     if (pct < 40) return { icon: list[1], label: "Sprouting Roots" };
@@ -829,7 +829,7 @@ export default function App() {
                                     }`}
                                   >
                                     <span className="text-xl">
-                                      {tree === 'oak' ? '🌳' : tree === 'bonsai' ? '🪴' : tree === 'cedar' ? '🌲' : '🎋'}
+                                      {tree === 'oak' ? '🌳' : tree === 'sunflower' ? '🌻' : tree === 'cedar' ? '🌲' : '🎋'}
                                     </span>
                                     <span className="text-[9px] capitalize">{tree}</span>
                                   </button>

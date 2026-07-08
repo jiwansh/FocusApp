@@ -1,149 +1,246 @@
-/* Arbor Blocker - Injected Floating Timer Widget Styling */
+/* Arbor Blocker - Floating Circular Timer Widget Stylesheet (Premium Polish) */
+
+:host {
+  /* Colors & Design Tokens */
+  --arbor-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Layered Deep Charcoal/Navy Gradient Background */
+  --arbor-glass-bg: radial-gradient(100% 100% at 50% 0%, rgba(30, 41, 59, 0.93) 0%, rgba(15, 23, 42, 0.95) 100%);
+  --arbor-glass-border: rgba(255, 255, 255, 0.08);
+  
+  /* Multi-layered soft shadows for elevation depth */
+  --arbor-shadow-outer: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --arbor-shadow-ambient: 0 2px 6px rgba(0, 0, 0, 0.12);
+  --arbor-shadow-inner: 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  
+  --color-active-track: rgba(45, 212, 191, 0.08);
+  --color-paused-track: rgba(245, 158, 11, 0.08);
+  --color-break-track: rgba(96, 165, 250, 0.08);
+  
+  --text-primary: #f8fafc;
+  --text-active-label: rgba(45, 212, 191, 0.85);
+  --text-paused-label: rgba(245, 158, 11, 0.85);
+  --text-break-label: rgba(96, 165, 250, 0.85);
+  
+  --animation-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 #arbor-floating-timer-root {
-  all: initial; /* Reset browser defaults for this container */
+  all: initial;
   position: fixed;
-  top: 24px;     /* Positioned at the top right by default */
+  top: 24px;
   right: 24px;
-  z-index: 2147483647; /* Highest z-index to stay on top of all page elements */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  z-index: 2147483647;
+  font-family: var(--arbor-font);
   user-select: none;
 }
 
 .arbor-timer-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  
-  /* Solid high-contrast light background that stands out on BOTH light pages and dark pages */
-  background: #ffffff !important;
-  border: 2px solid #10b981 !important; /* Vibrant emerald green border */
-  border-radius: 16px;
-  padding: 10px 16px;
-  
-  /* Deep, clear drop shadow so it detaches from light pages, and pops as a clean card on dark pages */
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2), 
-              0 0 1px 1px rgba(0, 0, 0, 0.05) inset !important;
-  color: #0f172a !important; /* Dark text color for maximum readability */
-  cursor: grab;
-  transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s, background-color 0.25s;
-  min-width: 135px;
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   box-sizing: border-box;
+  background: var(--arbor-glass-bg) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid var(--arbor-glass-border) !important;
+  box-shadow: var(--arbor-shadow-outer), var(--arbor-shadow-ambient), var(--arbor-shadow-inner) !important;
+  cursor: grab;
+  overflow: hidden;
+  transition: width var(--animation-transition),
+              height var(--animation-transition),
+              border-color 0.3s,
+              box-shadow 0.3s !important;
 }
 
 .arbor-timer-card:hover {
-  border-color: #059669 !important; /* Deeper green on hover */
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.28), 
-              0 0 1px 1px rgba(0, 0, 0, 0.08) inset !important;
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.35), var(--arbor-shadow-ambient), var(--arbor-shadow-inner) !important;
 }
 
 .arbor-timer-card:active {
   cursor: grabbing;
-  transform: scale(0.97);
 }
 
-/* Red Solid/Light Background when Focus is Paused */
-.arbor-timer-card.arbor-paused {
-  border-color: #dc2626 !important; /* Warning red border */
-  background: #fef2f2 !important; /* Soft light-red background */
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.3), 
-              0 10px 30px rgba(15, 23, 42, 0.2) !important;
-  color: #991b1b !important;
-  animation: arborBlink 1.5s infinite ease-in-out;
+/* SVG Progress Rings */
+.arbor-progress-svg {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
 }
 
-.arbor-tree-avatar {
-  font-size: 24px;
-  line-height: 1;
-  animation: arborBreathe 4s infinite ease-in-out;
+.arbor-progress-track {
+  stroke: var(--color-active-track) !important;
+  transition: stroke 0.3s !important;
 }
 
-.arbor-timer-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.arbor-progress-bar {
+  stroke: url(#arbor-ring-gradient) !important; /* Premium Teal Gradient */
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s !important;
+}
+
+/* Ring States mapping */
+.arbor-timer-card.arbor-paused .arbor-progress-track {
+  stroke: var(--color-paused-track) !important;
+}
+
+.arbor-timer-card.arbor-paused .arbor-progress-bar {
+  stroke: url(#arbor-ring-paused) !important; /* Amber Gradient */
+}
+
+.arbor-timer-card.arbor-break .arbor-progress-track {
+  stroke: var(--color-break-track) !important;
+}
+
+.arbor-timer-card.arbor-break .arbor-progress-bar {
+  stroke: url(#arbor-ring-break) !important; /* Blue Gradient */
+}
+
+/* Inner elements stacking layout */
+.arbor-inner-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 2 !important;
+  box-sizing: border-box;
 }
 
 .arbor-time-countdown {
-  font-size: 20px;
-  font-weight: 850;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: #0f172a !important; /* High contrast dark countdown digits */
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text-primary) !important;
+  font-variant-numeric: tabular-nums !important;
+  margin-top: 22px !important;
+  line-height: 1.1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  transition: opacity var(--animation-transition),
+              visibility var(--animation-transition) !important;
 }
 
-.arbor-timer-card.arbor-paused .arbor-time-countdown {
-  color: #991b1b !important; /* Red countdown when paused */
+/* Plant SVG animations and details */
+.arbor-plant-container {
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  margin: 4px 0 !important;
+  
+  /* Very faint radial glow behind plant stem */
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.08) 0%, rgba(45, 212, 191, 0) 70%) !important;
+  
+  transition: width var(--animation-transition),
+              height var(--animation-transition),
+              margin var(--animation-transition),
+              background var(--animation-transition) !important;
+}
+
+.arbor-timer-card.arbor-paused .arbor-plant-container {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0) 70%) !important;
+}
+
+.arbor-timer-card.arbor-break .arbor-plant-container {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 70%) !important;
+}
+
+.arbor-plant-svg {
+  width: 100% !important;
+  height: 100% !important;
+  animation: plantBreathe 4s infinite ease-in-out;
+  transform-origin: bottom center;
+  transition: transform 0.4s ease, filter 0.4s ease !important;
+}
+
+/* Calm, gentle breathing animation (1 -> 1.02 -> 1) */
+@keyframes plantBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Droop and grayscale on pause */
+.arbor-timer-card.arbor-paused .arbor-plant-svg {
+  animation: none !important;
+  filter: grayscale(100%) brightness(0.85) !important;
+  transform: scale(0.92) rotate(-10deg) !important;
 }
 
 .arbor-status-label {
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #059669 !important; /* Vibrant emerald green status label */
-  margin-top: 3px;
+  font-size: 8.5px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--text-active-label) !important;
+  margin-bottom: 22px !important;
+  line-height: 1.1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: color 0.3s,
+              opacity var(--animation-transition),
+              visibility var(--animation-transition) !important;
 }
 
 .arbor-timer-card.arbor-paused .arbor-status-label {
-  color: #dc2626 !important; /* Alert red label when paused */
+  color: var(--text-paused-label) !important;
 }
 
-/* Small utility buttons: minimize */
-.arbor-widget-actions {
-  display: flex;
-  align-items: center;
-  margin-left: 6px;
-  gap: 4px;
+.arbor-timer-card.arbor-break .arbor-status-label {
+  color: var(--text-break-label) !important;
 }
 
-.arbor-action-btn {
-  background: rgba(15, 23, 42, 0.05) !important;
-  border: none !important;
-  color: #475569 !important; /* Dark slate icons */
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s, color 0.2s, transform 0.1s;
-}
-
-.arbor-action-btn:hover {
-  background: rgba(15, 23, 42, 0.12) !important;
-  color: #0f172a !important;
-  transform: scale(1.05);
-}
-
-.arbor-action-btn:active {
-  transform: scale(0.95);
-}
-
-/* Minimized State */
+/* Minimized Mode Styles */
 .arbor-timer-card.arbor-minimized {
-  min-width: unset !important;
-  padding: 10px !important;
-  border-radius: 50% !important;
-  aspect-ratio: 1 / 1 !important;
-  justify-content: center !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2) !important;
+  width: 60px !important;
+  height: 60px !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.arbor-timer-card.arbor-minimized .arbor-timer-info,
-.arbor-timer-card.arbor-minimized .arbor-widget-actions {
-  display: none !important;
+.arbor-timer-card.arbor-minimized .arbor-time-countdown,
+.arbor-timer-card.arbor-minimized .arbor-status-label {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
-/* Animations */
-@keyframes arborBreathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+.arbor-timer-card.arbor-minimized .arbor-plant-container {
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 !important;
+  background: none !important; /* Hide background glow in mini state */
 }
 
-@keyframes arborBlink {
-  0%, 100% { border-color: rgba(220, 38, 38, 0.55); }
-  50% { border-color: rgba(220, 38, 38, 1); }
+/* Bloom completion animation */
+@keyframes bloomEffect {
+  0% { 
+    transform: scale(1); 
+    opacity: 1; 
+    filter: brightness(1); 
+  }
+  40% { 
+    transform: scale(1.15); 
+    opacity: 0.98; 
+    filter: brightness(1.2) drop-shadow(0 0 12px rgba(45, 212, 191, 0.4)); 
+    border-color: rgba(45, 212, 191, 0.5) !important;
+  }
+  100% { 
+    transform: scale(0.85); 
+    opacity: 0; 
+  }
+}
+
+.arbor-timer-card.arbor-completed {
+  animation: bloomEffect 0.8s forwards cubic-bezier(0.25, 1, 0.5, 1) !important;
 }

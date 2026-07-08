@@ -24,7 +24,7 @@ When you attempt to navigate to a blocked website (e.g., `x.com`, `instagram.com
 * Turns red and pulses when the focus timer is paused.
 
 ### 4. 🌳 Seed Growth Gamification & Streak tracking
-* Choose from 4 seedling types: **Oak, Bonsai, Cedar, or Bamboo**.
+* Choose from 4 seedling types: **Oak, Sunflower, Cedar, or Bamboo**.
 * Earn **10 XP per minute** focused.
 * Complete sessions to grow full majestic trees. Aborting a session will wither and kill the tree.
 * Track daily streaks and lifetime stats.
