@@ -22,7 +22,16 @@ import {
   FolderMinus,
   Check,
   Search,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon,
+  RefreshCw,
+  AlertTriangle,
+  Flame,
+  Award,
+  Zap,
+  HelpCircle,
+  FileJson
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { EXTENSION_FILES, ExtensionFile } from './extensionCodeData';
@@ -31,6 +40,21 @@ export default function App() {
   // --- Applet Metadata Naming ---
   const appVersion = "1.0.0";
   const appAuthor = "Arbor Focus Group";
+
+  // --- Theme State (Dark mode by default) ---
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('arbor_dark_mode');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('arbor_dark_mode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   // --- Real-time Local Date state ---
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -170,14 +194,6 @@ export default function App() {
     bamboo: ['🌱', '🎋', '🎋', '🎋✨']
   };
 
-  const stageLabels = [
-    "Planted Seedling",
-    "Sprouting Root System",
-    "Budding Sapling",
-    "Majestic Grown Canopy!"
-  ];
-
-  // Logic: Calculate tree visual stage based on elapsed progress ratio
   const getTreeVisual = (type: 'oak' | 'sunflower' | 'cedar' | 'bamboo', pct: number) => {
     const list = treeStages[type] || treeStages.oak;
     if (pct < 10) return { icon: list[0], label: "Planted Seedling" };
@@ -237,7 +253,6 @@ export default function App() {
       const updateTimer = () => {
         const remainingMs = focusSession.endTime! - Date.now();
         if (remainingMs <= 0) {
-          // Complete focus!
           completeSession();
           return;
         }
@@ -297,7 +312,6 @@ export default function App() {
 
     playSimulatedChime();
     
-    // Redirect browser simulation back to standard home if blocked
     if (currentRenderedPage === 'blocked') {
       setCurrentRenderedPage('google');
       setBrowserUrl('google.com');
@@ -307,12 +321,9 @@ export default function App() {
   // Block Evaluation function
   const evaluateBrowserNavigation = (targetUrl: string, startSessionObj?: typeof focusSession) => {
     const sanitizedInput = targetUrl.trim().toLowerCase();
-    
-    // Check if redirect is required
     const sessionActive = startSessionObj ? startSessionObj.isActive : focusSession.isActive;
 
     if (!sessionActive) {
-      // Free browsing!
       if (sanitizedInput.includes('options.html') || sanitizedInput.includes('chrome-extension://')) {
         setCurrentRenderedPage('options');
       } else if (sanitizedInput === 'google.com' || sanitizedInput === '') {
@@ -323,25 +334,20 @@ export default function App() {
       return;
     }
 
-    // Timer IS active. Inspect blocking rules!
-    // Check if domain is blocked
+    // Blocker active. Evaluate rules.
     const isMatchingBlock = blockedSites.some(blockedDomain => {
-      // Matches domain if URL contains the domain, e.g. "youtube.com/something" matches "youtube.com"
       return sanitizedInput.includes(blockedDomain);
     });
 
     if (isMatchingBlock) {
-      // Check if URL matches any SMART EXCEPTION path rule
       const matchesException = allowedExceptions.some(excPath => {
         return excPath && excPath.trim() && sanitizedInput.includes(excPath.toLowerCase().trim());
       });
 
       if (matchesException) {
-        // Exempt block! Let it load
         setCurrentRenderedPage('web');
         triggerNotification("Smart Exception Allowed 🎓", `Bypassing filter block because "${sanitizedInput}" matches allowed study path.`);
       } else {
-        // Redirection triggered!
         setCurrentRenderedPage('blocked');
         setStats(prev => ({
           ...prev,
@@ -350,7 +356,6 @@ export default function App() {
         triggerNotification("Website Intercepted! 🚫", "You attempted to open a blocked site. Redirected to Arbor focus clock.");
       }
     } else {
-      // Not on blocklist, check if on productive allowlist or just standard web-url
       setCurrentRenderedPage('web');
     }
   };
@@ -394,7 +399,6 @@ export default function App() {
       `Your ${mins}m deep work timer has begun. Stay away from blocked social feeds!`
     );
 
-    // Evaluate current simulator window path immediately (if already sitting on a blocked site, trigger immediate block)
     evaluateBrowserNavigation(browserUrl, newSession);
   };
 
@@ -416,7 +420,6 @@ export default function App() {
         "Your focus progress was aborted. The active sapling has withered."
       );
 
-      // Restore blocked simulator pages if necessary
       if (currentRenderedPage === 'blocked') {
         setCurrentRenderedPage('google');
         setBrowserUrl('google.com');
@@ -540,12 +543,10 @@ export default function App() {
 
       // Write code files
       EXTENSION_FILES.forEach(file => {
-        // For actual files, we can preserve folder paths
         zip.file(file.path, file.content);
       });
 
-      // Draw custom tree icons dynamically in HTML canvas and add as high-contrast PNG blobs!
-      // This is dynamic asset generation requested for perfect MV3 loading in developers modes!
+      // Draw custom tree icons dynamically in HTML canvas
       const drawIconBlob = (size: number): Promise<Blob> => {
         return new Promise((resolve) => {
           const canvas = document.createElement('canvas');
@@ -556,15 +557,15 @@ export default function App() {
           // Forest Green circular badge
           ctx.beginPath();
           ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
-          ctx.fillStyle = '#16a34a';
+          ctx.fillStyle = '#10b981';
           ctx.fill();
 
           // Outer light border
-          ctx.strokeStyle = '#e2e8f0';
+          ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = size * 0.08;
           ctx.stroke();
 
-          // Emoji drawing or beautiful stylized leaf shapes
+          // Emoji drawing
           ctx.font = `${size * 0.65}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -613,158 +614,183 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f4] text-[#1c1d1a] font-sans selection:bg-emerald-100 selection:text-emerald-800 antialiased flex flex-col">
-      {/* --- Page Header --- */}
-      <header className="border-b border-[#ebdcb9] bg-white px-6 py-4 flex flex-wrap gap-4 items-center justify-between sticky top-0 z-50 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-700 flex items-center justify-center shadow-md shadow-emerald-700/15">
-            <span className="text-xl text-white">🌳</span>
+    <div className={`min-h-screen transition-colors duration-300 ${
+      darkMode ? 'bg-mesh-gradient-dark bg-grid-overlay-dark text-neutral-100' : 'bg-mesh-gradient-light bg-grid-overlay-light text-neutral-900'
+    } font-sans selection:bg-emerald-500/20 selection:text-emerald-300 antialiased flex flex-col`}>
+      
+      {/* --- Vercel-inspired Glassmorphic Sticky Header --- */}
+      <header className="border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/70 dark:bg-black/70 backdrop-blur-md px-6 py-4 sticky top-0 z-50 transition-colors duration-300">
+        <div className="max-w-7xl w-full mx-auto flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <svg className="w-6 h-6 text-neutral-900 dark:text-white fill-current transition-colors" viewBox="0 0 75 65">
+              <path d="M37.5 0L75 65H0L37.5 0Z" />
+            </svg>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-bold tracking-widest uppercase font-mono text-neutral-900 dark:text-white">
+                  ARBOR
+                </h1>
+                <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
+                  MV3
+                </span>
+              </div>
+              <p className="text-[10px] text-neutral-500 dark:text-neutral-400">Chrome Extension Workspace & Blocker Simulator.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-slate-800 flex items-center gap-2">
-              Arbor Chrome Workspace <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Manifest V3</span>
-            </h1>
-            <p className="text-xs text-slate-500">Chrome extension builder, dynamic blocker simulator, and direct exporter</p>
-          </div>
-        </div>
 
-        {/* Live system state bar */}
-        <div className="flex items-center gap-5">
-          <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-mono text-slate-400 font-semibold uppercase tracking-wider">WORKSPACE CLOCK</span>
-            <span className="text-xs font-semibold text-slate-800 font-mono">{currentTime || "Loading Date..."}</span>
-          </div>
+          <div className="flex items-center gap-4">
+            {/* Live Clock with Mono typography */}
+            <div className="hidden md:flex flex-col items-end border-r border-neutral-200 dark:border-neutral-800 pr-4">
+              <span className="text-[9px] font-mono text-neutral-400 dark:text-neutral-500 tracking-wider">SYSTEM CHRONO</span>
+              <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 font-mono">{currentTime || "Syncing clock..."}</span>
+            </div>
 
-          <button 
-            id="download-unpacked-header-btn"
-            onClick={handleDownloadUnpackedExtension}
-            disabled={isZipping}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 active:transform active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-sm"
-          >
-            {isZipping ? (
-              <span className="animate-spin text-sm">🌱</span>
-            ) : (
-              <Download className="w-4 h-4 text-emerald-400" />
-            )}
-            Download Unpacked ZIP
-          </button>
+            {/* Theme Toggle */}
+            <button 
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-600 dark:text-neutral-400 transition-all active:scale-90"
+              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {/* Exporter Action Button */}
+            <button 
+              id="download-unpacked-header-btn"
+              onClick={handleDownloadUnpackedExtension}
+              disabled={isZipping}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-xs transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer shadow-vercel-2 dark:shadow-vercel-dark-2 ${
+                darkMode 
+                  ? 'bg-white hover:bg-neutral-100 text-black' 
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-white'
+              }`}
+            >
+              {isZipping ? (
+                <span className="animate-spin text-sm">🌱</span>
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              Download Unpacked ZIP
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* --- Main Dashboard Container --- */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* --- Main Two-Column Dashboard Grid --- */}
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* ================= LEFT AREA: COGNITIVE INTERACTIVE SIMULATOR (7 Columns) ================= */}
+        {/* ================= LEFT COLUMN: INTERACTIVE BROWSER & EXTENSION SIMULATOR (7/12 Cols) ================= */}
         <div className="lg:col-span-7 flex flex-col gap-6" id="simulator-sandbox">
-          
-          <div className="bg-white border border-[#e5d4ab] rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-[580px]">
-            {/* Window control header bar */}
-            <div className="bg-[#f0ebd7] px-4 py-3 border-b border-[#e5d4ab] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-rose-400"></div>
-                <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
-                <span className="ml-2 font-mono text-xs font-semibold text-emerald-900 tracking-wider">CHROME DESKTOP SIMULATOR</span>
+          <div className="border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0a0a0a] rounded-2xl shadow-vercel-3 dark:shadow-vercel-dark-3 overflow-hidden flex flex-col min-h-[640px] transition-colors duration-300">
+            
+            {/* Mock OS Window Chrome Header */}
+            <div className="bg-neutral-50 dark:bg-[#0f0f0f] px-4 py-3 border-b border-neutral-250 dark:border-neutral-850 flex items-center justify-between transition-colors duration-300">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-neutral-350 dark:bg-neutral-700"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-neutral-350 dark:bg-neutral-700"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-neutral-350 dark:bg-neutral-700"></span>
+                <span className="ml-2 font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+                  BROWSER SIMULATOR
+                </span>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {focusSession.isActive && (
-                  <span className="animate-pulse inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-[10px] font-bold text-red-700 border border-red-200">
-                    <Shield className="w-3 h-3 text-red-500 fill-red-100" />
-                    BLOCKER ACTIVE ({remainingTimeText})
+                  <span className="animate-pulse inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-[9px] font-bold text-red-500 border border-red-500/20">
+                    <Shield className="w-3 h-3 text-red-500" />
+                    SHIELD ACTIVE ({remainingTimeText})
                   </span>
                 )}
-                <span className="text-[10px] font-mono text-emerald-800 uppercase font-bold bg-[#dfd8be] px-2 py-0.5 rounded-md">Vite Browser</span>
+                <span className="text-[9px] font-mono text-neutral-500 dark:text-neutral-400 uppercase font-semibold bg-neutral-200 dark:bg-neutral-850 px-2 py-0.5 rounded">
+                  Web Sandbox
+                </span>
               </div>
             </div>
 
-            {/* Virtual address bar panel with extension icon */}
-            <div className="bg-slate-50 border-b border-[#e5d4ab] p-2 flex items-center gap-2">
-              <div className="flex items-center gap-1 text-slate-400">
+            {/* Address bar & Extension action widgets */}
+            <div className="bg-neutral-100 dark:bg-[#121212] border-b border-neutral-250 dark:border-neutral-850 p-2.5 flex items-center gap-3 transition-colors duration-300">
+              <div className="flex items-center gap-1.5 text-neutral-400 dark:text-neutral-500">
                 <button 
                   onClick={() => {
                     setBrowserUrl(previousUrl);
                     evaluateBrowserNavigation(previousUrl);
                   }}
-                  className="p-1 hover:bg-slate-200 rounded-md transition-colors" 
+                  className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md transition-colors active:scale-95" 
                   title="Go back"
                 >
-                  <Undo2 className="w-4 h-4" />
+                  <Undo2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* URL Form bar */}
-              <form onSubmit={handleGoUrl} className="flex-1 flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1.5 shadow-2xs hover:border-slate-400 transition-colors">
-                <Chrome className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
+              {/* URL Address Input bar */}
+              <form onSubmit={handleGoUrl} className="flex-1 flex items-center bg-white dark:bg-black border border-neutral-250 dark:border-neutral-800 rounded-lg px-3 py-1.5 shadow-xs transition-all focus-within:ring-1 focus-within:ring-emerald-500/50">
+                <Chrome className="w-3.5 h-3.5 text-neutral-400 mr-2 shrink-0" />
                 <input 
                   type="text" 
                   value={browserUrl}
                   onChange={(e) => setBrowserUrl(e.target.value)}
-                  placeholder="Type a web domain e.g. youtube.com, github.com, x.com..."
-                  className="flex-1 bg-transparent text-xs text-slate-800 focus:outline-hidden"
+                  placeholder="Enter domain e.g. youtube.com, github.com, x.com..."
+                  className="flex-1 bg-transparent text-xs text-neutral-800 dark:text-neutral-200 focus:outline-hidden font-mono"
                 />
-                <button type="submit" className="hidden">Go</button>
               </form>
 
               {/* Extension Actions area */}
-              <div className="relative flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-bold text-slate-400 mr-1">EXTENSION BAR:</span>
-                
-                {/* Pinned main extension action button */}
+              <div className="relative flex items-center gap-2">
+                {/* Pinned Extension Logo button */}
                 <button
                   id="target-extension-icon"
                   onClick={() => setExtensionPopupOpened(!extensionPopupOpened)}
                   className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all cursor-pointer border hover:scale-105 active:scale-95 ${
                     focusSession.isActive 
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-sm shadow-emerald-500/15' 
-                      : 'bg-white border-slate-300 hover:border-slate-400'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-sm shadow-emerald-500/10' 
+                      : 'bg-white dark:bg-black border-neutral-250 dark:border-neutral-850 hover:border-neutral-400'
                   }`}
-                  title="Arbor Blocker Extension Overlay"
+                  title="Arbor Blocker Popup"
                 >
                   {focusSession.isActive ? (
                     <div className="relative">
-                      <span className="text-lg">🌳</span>
-                      <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 text-[8px] font-mono font-bold text-white flex items-center justify-center scale-90 border border-white">
-                        {Math.ceil((focusSession.endTime! - Date.now()) / 60000)}m
+                      <span className="text-base select-none">🌳</span>
+                      <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 dark:bg-emerald-500 text-[8px] font-mono font-bold text-white flex items-center justify-center scale-90 border border-white dark:border-black">
+                        {Math.ceil((focusSession.endTime! - Date.now()) / 60000)}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-lg opacity-85">🌱</span>
+                    <span className="text-base opacity-80 select-none">🌱</span>
                   )}
                 </button>
 
-                {/* Options button */}
+                {/* Blocker settings button */}
                 <button
                   onClick={() => {
                     setBrowserUrl('chrome-extension://options.html');
                     setCurrentRenderedPage('options');
                     setExtensionPopupOpened(false);
                   }}
-                  className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+                  className={`p-2.5 rounded-lg border transition-colors cursor-pointer active:scale-95 ${
                     currentRenderedPage === 'options' 
-                      ? 'bg-slate-900 border-slate-900 text-white' 
-                      : 'bg-white border-slate-300 hover:bg-slate-100 text-slate-600'
+                      ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-white dark:border-white dark:text-black' 
+                      : 'bg-white dark:bg-black border-neutral-250 dark:border-neutral-850 text-neutral-600 dark:text-neutral-450 hover:bg-neutral-50 dark:hover:bg-neutral-900'
                   }`}
-                  title="Extension Options Screen"
+                  title="Blocker Dashboard Options"
                 >
                   <Settings className="w-4 h-4" />
                 </button>
 
-                {/* ================= SIMULATOR FLOATING EXTENSION POPUP DRAW ================= */}
+                {/* ================= SIMULATOR FLOATING EXTENSION POPUP OVERLAY ================= */}
                 <AnimatePresence>
                   {extensionPopupOpened && (
                     <motion.div 
-                      initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                      className="absolute right-0 top-11 w-[335px] bg-[#fbf9f4] border border-[#e5d4ab] rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800"
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 top-11 w-[330px] bg-white dark:bg-[#0c0c0c] border border-neutral-250 dark:border-neutral-800 rounded-2xl shadow-vercel-4 dark:shadow-vercel-dark-4 z-50 overflow-hidden text-neutral-800 dark:text-neutral-200"
                     >
-                      {/* Popup header */}
-                      <div className="bg-white border-b border-[#e5d4ab] px-3.5 py-3 flex items-center justify-between">
+                      {/* Popup widget header */}
+                      <div className="bg-neutral-50 dark:bg-[#0f0f0f] border-b border-neutral-250 dark:border-neutral-850 px-4 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🌳</span>
-                          <span className="font-bold text-sm text-slate-800 tracking-tight">Arbor focus</span>
+                          <span className="text-base select-none">🌳</span>
+                          <span className="font-bold text-xs tracking-tight text-neutral-900 dark:text-white">Arbor focus.</span>
                         </div>
                         <button 
                           onClick={() => {
@@ -772,74 +798,75 @@ export default function App() {
                             setCurrentRenderedPage('options');
                             setExtensionPopupOpened(false);
                           }}
-                          className="w-7 h-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                          className="w-7 h-7 rounded-md border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-450 dark:text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         >
                           <Settings className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      {/* Popup core main content */}
+                      {/* Popup content */}
                       <div className="p-4 flex flex-col gap-4">
                         {focusSession.isActive ? (
-                          /* Active Stage Mode */
+                          /* Blocker Active widget state */
                           <div className="flex flex-col items-center gap-4 py-2">
                             <div className="flex flex-col items-center">
-                              <span className="text-6xl animate-bounce duration-1000 mb-2">
+                              <span className="text-5xl mb-2 animate-bounce select-none">
                                 {getTreeVisual(focusSession.treeType, focusSession.progress).icon}
                               </span>
-                              <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 font-semibold tracking-wide">
+                              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide">
                                 {getTreeVisual(focusSession.treeType, focusSession.progress).label}
                               </span>
                             </div>
 
                             <div className="text-center w-full">
-                              <span className="font-mono font-extrabold text-4xl text-slate-800 tracking-tight">
+                              <span className="font-mono font-bold text-3xl text-neutral-900 dark:text-white tracking-tight">
                                 {remainingTimeText}
                               </span>
-                              <div className="w-full bg-slate-200 rounded-full h-2 mt-3.5 overflow-hidden">
+                              {/* Glowing progress line */}
+                              <div className="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-1.5 mt-3 overflow-hidden">
                                 <div 
-                                  className="bg-emerald-600 h-full transition-all duration-1000"
+                                  className="bg-emerald-500 h-full transition-all duration-1000"
                                   style={{ width: `${focusSession.progress}%` }}
                                 ></div>
                               </div>
-                              <p className="text-[10px] text-slate-500 mt-2">Diverting pages to motivational message. Keep going!</p>
+                              <p className="text-[9px] text-neutral-400 mt-2 font-mono uppercase tracking-wider">diverting social media feeds</p>
                             </div>
 
                             <button 
                               onClick={handleYieldFocusSim}
-                              className="w-full py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-bold hover:bg-rose-100 active:transform active:scale-[0.98] text-xs transition-all cursor-pointer"
+                              className="w-full py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold border border-red-500/20 text-[11px] transition-all cursor-pointer"
                             >
-                              Yield (Give Up Seed)
+                              Yield Session (Wither Seed)
                             </button>
                           </div>
                         ) : (
-                          /* Setup focus mode selection */
+                          /* Blocker Idle setup widget state */
                           <div className="flex flex-col gap-4">
                             <div>
-                              <p className="text-[10px] font-mono uppercase font-bold text-slate-400 mb-2 text-center tracking-wider">Select Tree Seeds</p>
+                              <p className="text-[9px] font-mono uppercase font-bold text-neutral-400 dark:text-neutral-500 mb-2 tracking-wider">Select Seed Type</p>
                               <div className="grid grid-cols-4 gap-1.5">
                                 {(Object.keys(treeStages) as Array<keyof typeof treeStages>).map((tree) => (
                                   <button
                                     key={tree}
                                     onClick={() => setSelectedSetupTree(tree)}
-                                    className={`py-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                                    className={`py-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer active:scale-95 ${
                                       selectedSetupTree === tree 
-                                        ? 'border-emerald-700 bg-emerald-50 text-emerald-800 font-bold shadow-xs' 
-                                        : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
+                                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold' 
+                                        : 'border-neutral-200 dark:border-neutral-850 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-750 text-neutral-600 dark:text-neutral-400'
                                     }`}
                                   >
-                                    <span className="text-xl">
+                                    <span className="text-xl select-none">
                                       {tree === 'oak' ? '🌳' : tree === 'sunflower' ? '🌻' : tree === 'cedar' ? '🌲' : '🎋'}
                                     </span>
-                                    <span className="text-[9px] capitalize">{tree}</span>
+                                    <span className="text-[9px] capitalize tracking-tight">{tree}</span>
                                   </button>
                                 ))}
                               </div>
                             </div>
 
-                            {/* Presets times rows */}
+                            {/* Preset Duration Buttons */}
                             <div>
-                              <p className="text-[10px] font-mono uppercase font-bold text-slate-400 mb-2 text-center tracking-wider">Focus Duration</p>
+                              <p className="text-[9px] font-mono uppercase font-bold text-neutral-400 dark:text-neutral-500 mb-2 tracking-wider">Focus Interval</p>
                               <div className="grid grid-cols-4 gap-1.5">
                                 {[25, 50, 90].map(mins => (
                                   <button
@@ -848,10 +875,10 @@ export default function App() {
                                       setSelectedSetupMins(mins);
                                       setIsCustomSetup(false);
                                     }}
-                                    className={`py-2 rounded-lg border text-xs font-semibold cursor-pointer ${
+                                    className={`py-2 rounded-lg border text-xs font-semibold cursor-pointer active:scale-95 transition-all ${
                                       selectedSetupMins === mins && !isCustomSetup
-                                        ? 'bg-slate-900 border-slate-900 text-white'
-                                        : 'bg-white border-slate-300 hover:bg-slate-50 text-slate-600'
+                                        ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-white dark:border-white dark:text-black font-bold'
+                                        : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
                                     }`}
                                   >
                                     {mins}m
@@ -859,10 +886,10 @@ export default function App() {
                                 ))}
                                 <button
                                   onClick={() => setIsCustomSetup(true)}
-                                  className={`py-2 rounded-lg border text-xs font-semibold cursor-pointer ${
+                                  className={`py-2 rounded-lg border text-xs font-semibold cursor-pointer active:scale-95 transition-all ${
                                     isCustomSetup
-                                      ? 'bg-slate-900 border-slate-900 text-white'
-                                      : 'bg-white border-slate-300 hover:bg-slate-50 text-slate-600'
+                                      ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-white dark:border-white dark:text-black font-bold'
+                                      : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
                                   }`}
                                 >
                                   Custom
@@ -870,12 +897,12 @@ export default function App() {
                               </div>
                             </div>
 
-                            {/* Slider (if custom enabled) */}
+                            {/* Custom slider selector */}
                             {isCustomSetup && (
-                              <div className="bg-white border border-[#e5d4ab] rounded-xl p-3">
-                                <div className="flex justify-between text-xs text-slate-500 mb-1">
-                                  <span>Time frame:</span>
-                                  <span className="font-bold text-slate-800">{customSliderMins} mins</span>
+                              <div className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-850 rounded-xl p-3">
+                                <div className="flex justify-between text-xs mb-1 font-mono">
+                                  <span className="text-neutral-400">Duration:</span>
+                                  <span className="font-bold text-neutral-900 dark:text-white">{customSliderMins} mins</span>
                                 </div>
                                 <input 
                                   type="range" 
@@ -884,25 +911,29 @@ export default function App() {
                                   step={5} 
                                   value={customSliderMins}
                                   onChange={(e) => setCustomSliderMins(parseInt(e.target.value, 10))}
-                                  className="w-full accent-emerald-700 cursor-pointer"
+                                  className="w-full accent-emerald-500 cursor-pointer"
                                 />
                               </div>
                             )}
 
                             <button
                               onClick={handleStartFocusSim}
-                              className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white border-none rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] text-xs shadow-md shadow-emerald-700/10"
+                              className={`w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] text-xs shadow-vercel-2 dark:shadow-vercel-dark-2 ${
+                                darkMode 
+                                  ? 'bg-white hover:bg-neutral-100 text-black' 
+                                  : 'bg-neutral-955 hover:bg-neutral-850 text-white'
+                              }`}
                             >
-                              <Play className="w-3.5 h-3.5" />
+                              <Play className="w-3.5 h-3.5 fill-current" />
                               Sow a Focus Seed
                             </button>
                           </div>
                         )}
                       </div>
 
-                      {/* Popup Footer stats pills */}
-                      <div className="bg-white border-t border-[#e5d4ab] px-3.5 py-2.5 flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                        <span title="Continuous Day Streaks">🔥 {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'}</span>
+                      {/* Popup widget footer metrics */}
+                      <div className="bg-neutral-50 dark:bg-[#0f0f0f] border-t border-neutral-250 dark:border-neutral-850 px-4 py-3 flex items-center justify-between text-[10px] font-mono font-semibold text-neutral-500 dark:text-neutral-400">
+                        <span title="Continuous Day Streaks">🔥 {stats.currentStreak} Day{stats.currentStreak === 1 ? '' : 's'}</span>
                         <span title="Total XP Points">⭐ {stats.xp} XP</span>
                         <span title="Cumulative Duration">⏱️ {stats.totalFocusMinutes}m</span>
                       </div>
@@ -912,23 +943,27 @@ export default function App() {
               </div>
             </div>
 
-            {/* Simulated browser page viewport wrapper */}
-            <div className="flex-1 bg-slate-100 flex flex-col relative overflow-y-auto">
+            {/* Simulated browser page viewport */}
+            <div className="flex-1 bg-neutral-50 dark:bg-[#0e0e0e] flex flex-col relative overflow-y-auto">
+              
+              {/* Top virtual navigation loader bar */}
               {simulatedLoadProgress && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-slate-200 overflow-hidden">
-                  <div className="h-full bg-emerald-600 animate-[pulse_1.5s_infinite] w-2/3"></div>
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-neutral-200 dark:bg-neutral-850 overflow-hidden">
+                  <div className="h-full bg-emerald-500 animate-[pulse_1.2s_infinite] w-2/3"></div>
                 </div>
               )}
 
-              {/* RENDER CASE 1: Google Homepage default search */}
+              {/* PAGE VIEWPORT CASE 1: Google Homepage Search Simulator */}
               {currentRenderedPage === 'google' && (
-                <div className="flex-1 bg-white flex flex-col justify-center items-center p-8">
+                <div className="flex-1 bg-white dark:bg-[#0a0a0a] flex flex-col justify-center items-center p-8 transition-colors duration-300">
                   <div className="flex flex-col items-center gap-1 text-center max-w-sm">
-                    <span className="text-5xl">🔍</span>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight font-[#font-sans] mt-2">
-                      Vite<span className="text-emerald-600">Search</span>
-                    </h1>
-                    <p className="text-xs text-slate-400 mt-1">Simulator network engine. Test blocklists by searching below.</p>
+                    <span className="text-5xl select-none mb-3">🔍</span>
+                    <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                      Arbor Search.
+                    </h2>
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500 leading-normal">
+                      Local sandbox web engine. Type domain directly or query below to test rules.
+                    </p>
                   </div>
 
                   <form 
@@ -940,132 +975,132 @@ export default function App() {
                         handleGoUrl();
                       }
                     }}
-                    className="w-full max-w-md mt-6 flex gap-2 border border-slate-200 bg-[#f8fafc] rounded-xl px-4 py-2 hover:bg-white focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-700 transition-all shadow-xs"
+                    className="w-full max-w-md mt-6 flex gap-2 border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-black rounded-xl px-4 py-2.5 focus-within:bg-white dark:focus-within:bg-black focus-within:ring-1 focus-within:ring-neutral-400 dark:focus-within:ring-neutral-750 transition-all shadow-xs"
                   >
-                    <Search className="w-4 h-4 text-slate-400 shrink-0 self-center" />
+                    <Search className="w-4 h-4 text-neutral-400 shrink-0 self-center" />
                     <input 
                       type="text" 
-                      placeholder="Search website name e.g. youtube.com, docs.oracle.com"
+                      placeholder="e.g., youtube.com, reddit.com, github.com..."
                       value={simulatedWebSearchQuery}
                       onChange={(e) => setSimulatedWebSearchQuery(e.target.value)}
-                      className="flex-1 bg-transparent border-none text-xs text-slate-800 focus:outline-hidden"
+                      className="flex-1 bg-transparent border-none text-xs text-neutral-800 dark:text-neutral-250 focus:outline-hidden font-mono"
                     />
                   </form>
 
-                  {/* Quick helpful seed recommendations */}
+                  {/* Fast shortcut trigger badges */}
                   <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-md">
-                    <span className="text-[10px] text-slate-400 font-bold self-center mr-1">TEST CLICKS:</span>
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono tracking-wider self-center mr-2">QUICK TEST:</span>
                     <button 
                       onClick={() => { setBrowserUrl('youtube.com'); evaluateBrowserNavigation('youtube.com'); }}
-                      className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200 text-[10px] font-semibold transition-all cursor-pointer"
+                      className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10px] font-semibold transition-all hover:bg-red-500/20 cursor-pointer"
                     >
                       📺 youtube.com (Blocked)
                     </button>
                     <button 
                       onClick={() => { setBrowserUrl('youtube.com/c/takeuforward'); evaluateBrowserNavigation('youtube.com/c/takeuforward'); }}
-                      className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-semibold transition-all cursor-pointer"
+                      className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold transition-all hover:bg-emerald-500/20 cursor-pointer"
                     >
                       🎓 Exception: takeuforward
                     </button>
                     <button 
                       onClick={() => { setBrowserUrl('github.com'); evaluateBrowserNavigation('github.com'); }}
-                      className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-850 hover:bg-slate-100 border border-slate-200 text-[10px] font-semibold transition-all cursor-pointer"
+                      className="px-2.5 py-1 rounded-full bg-neutral-200/50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-355 border border-neutral-300/40 dark:border-neutral-755 text-[10px] font-semibold transition-all hover:bg-neutral-300/40 cursor-pointer"
                     >
                       💻 github.com (Allowed)
                     </button>
-                    <button 
-                      onClick={() => { setBrowserUrl('reddit.com'); evaluateBrowserNavigation('reddit.com'); }}
-                      className="px-2.5 py-1 rounded-md bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200 text-[10px] font-semibold transition-all cursor-pointer"
-                    >
-                      👽 reddit.com (Blocked)
-                    </button>
                   </div>
                 </div>
               )}
 
-              {/* RENDER CASE 2: Permissive/Neutral mock website page */}
+              {/* PAGE VIEWPORT CASE 2: Mock Productive Allowed Webpage view */}
               {currentRenderedPage === 'web' && (
-                <div className="flex-1 bg-[#f8fafc] p-6 flex flex-col">
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                <div className="flex-1 bg-neutral-50 dark:bg-[#0a0a0a] p-6 flex flex-col transition-colors duration-300">
+                  <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-sm font-bold">🌐</span>
+                      <span className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-sm font-bold select-none">🌐</span>
                       <div>
-                        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{browserUrl}</h2>
-                        <span className="text-[10px] text-emerald-600 font-semibold">Loaded successfully</span>
+                        <h2 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider font-mono">{browserUrl}</h2>
+                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-mono">Status: Allowed Bypassed</span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">Simulated Net Sandbox</span>
+                    <span className="text-[9px] font-mono text-neutral-400">Secure simulated view</span>
                   </div>
 
-                  <div className="flex-1 bg-white border border-slate-200 rounded-xl p-6 flex flex-col justify-center items-center text-center">
-                    <h1 className="text-emerald-700 text-3xl font-black tracking-tight">Productive Page Active</h1>
-                    <p className="text-slate-500 text-xs mt-2 max-w-sm leading-relaxed">
-                      This website is currently allowed by your configuration rules. Bypassed block check successfully.
+                  <div className="flex-1 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl p-8 flex flex-col justify-center items-center text-center shadow-xs">
+                    <h3 className="text-emerald-600 dark:text-emerald-500 text-xl font-bold tracking-tight">
+                      Productive Portal Active.
+                    </h3>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-xs mt-2 max-w-sm leading-relaxed">
+                      You are allowed access to this page by your current manifest configuration. Use this session to focus.
                     </p>
                     
-                    <div className="mt-6 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center gap-3 max-w-md text-left">
-                      <span className="text-2xl">💡</span>
+                    <div className="mt-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3 max-w-md text-left">
+                      <span className="text-xl select-none">💡</span>
                       <div>
-                        <h3 className="text-xs font-bold text-emerald-900">Good Job Focusing!</h3>
-                        <p className="text-[11px] text-slate-600 mt-0.5">Use this space on {browserUrl} to finish your work tasks.</p>
+                        <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Study Guidelines</h4>
+                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">Stay focused. The seedling will mature when the countdown completes.</p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* RENDER CASE 3: THE EMBARRASSING INTERSTELLAR MOTIVATING BLOCK PAGE (Exact replica of blocked.html) */}
+              {/* PAGE VIEWPORT CASE 3: INTERCEPTED / BLOCKED OVERRIDE motiv-screen */}
               {currentRenderedPage === 'blocked' && (
-                <div className="flex-1 bg-[#f1f5f9] flex items-center justify-center p-4">
-                  <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-md text-center">
+                <div className="flex-1 bg-neutral-50 dark:bg-[#0d0d0d] flex items-center justify-center p-6 transition-colors duration-300">
+                  <div className="w-full max-w-md bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-vercel-3 dark:shadow-vercel-dark-3 text-center">
                     
-                    {/* Header bar of block detail */}
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <span className="text-xl">🌳</span>
-                      <h1 className="text-xs font-black tracking-tighter text-slate-800 uppercase">Arbor Blocker</h1>
-                      <span className="bg-red-50 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-red-100">
-                        FOCUS ACTIVE
+                    {/* Header blocker icon bar */}
+                    <div className="flex items-center justify-center gap-2 mb-4 border-b border-neutral-100 dark:border-neutral-900 pb-3">
+                      <span className="text-lg select-none">🌳</span>
+                      <h2 className="text-[10px] font-mono uppercase font-bold tracking-wider text-neutral-500">Arbor Blocker</h2>
+                      <span className="bg-red-500/10 text-red-500 text-[9px] font-bold px-2 py-0.5 rounded-full border border-red-500/20">
+                        FOCUS LOCKED
                       </span>
                     </div>
 
-                    {/* Central illustration */}
-                    <div className="my-5 flex flex-col items-center">
-                      <span className="text-7xl animate-pulse">
-                        {getTreeVisual(focusSession.treeType, focusSession.progress).icon}
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full mt-3.5 border border-emerald-100">
+                    {/* Glowing animated visual */}
+                    <div className="my-6 flex flex-col items-center">
+                      <div className="relative flex items-center justify-center w-24 h-24 rounded-full border border-neutral-200 dark:border-neutral-800 shadow-inner bg-neutral-50 dark:bg-neutral-950">
+                        {/* Spinning dotted halo ring */}
+                        <div className="absolute inset-0.5 border border-dashed border-emerald-500/40 rounded-full animate-[spin_20s_linear_infinite]"></div>
+                        <span className="text-5xl select-none relative z-10 tree-glow-active">
+                          {getTreeVisual(focusSession.treeType, focusSession.progress).icon}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full mt-4 border border-emerald-500/20 uppercase tracking-wider font-mono">
                         {getTreeVisual(focusSession.treeType, focusSession.progress).label}
                       </span>
                     </div>
 
-                    {/* Customized motivational strings */}
-                    <div className="mb-5 px-3">
-                      <h2 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
+                    {/* Custom Title message */}
+                    <div className="mb-6 px-2">
+                      <h3 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight leading-snug">
                         {settings.redirectTitle}
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                      </h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2 leading-relaxed">
                         {settings.redirectSubtitle}
                       </p>
                     </div>
 
-                    {/* Timer Stopwatch details */}
-                    <div className="border-t border-b border-slate-100 py-3 mb-5">
-                      <span className="font-mono text-4xl font-extrabold text-slate-800 block">
+                    {/* Huge display clock details */}
+                    <div className="border-t border-b border-neutral-100 dark:border-neutral-900 py-4 mb-6">
+                      <span className="font-mono text-4xl font-bold tracking-tighter text-neutral-900 dark:text-white block">
                         {remainingTimeText}
                       </span>
-                      <span className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">
-                        remaining focus session
+                      <span className="text-[9px] font-mono uppercase text-neutral-400 tracking-widest mt-1 block">
+                        TIME REMAINING IN STAGE
                       </span>
                     </div>
 
-                    {/* Allow shortcuts panel */}
-                    <div className="bg-[#f8fafc] border border-slate-100 rounded-xl p-4 text-left">
-                      <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                        🚀 Productive Shortcuts
-                      </h3>
-                      <p className="text-[9px] text-slate-400 mb-2.5">Skip to your specified allowlist hubs instead:</p>
+                    {/* Allowed exceptions routing */}
+                    <div className="bg-neutral-50 dark:bg-[#0f0f0f] border border-neutral-200 dark:border-neutral-850 rounded-xl p-4 text-left">
+                      <h4 className="text-[9px] font-mono font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                        PRODUCTIVE SHORTCUTS
+                      </h4>
                       
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {allowedSites.map(site => (
                           <button
                             key={site}
@@ -1073,13 +1108,13 @@ export default function App() {
                               setBrowserUrl(site);
                               evaluateBrowserNavigation(site);
                             }}
-                            className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-bold text-slate-600 hover:border-emerald-700 hover:text-emerald-700 hover:bg-emerald-50 flex items-center gap-1 cursor-pointer transition-all active:transform active:scale-95"
+                            className="px-2.5 py-1.5 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-lg text-[10px] font-mono font-semibold text-neutral-700 dark:text-neutral-300 hover:border-emerald-500 hover:text-emerald-500 dark:hover:border-emerald-500 flex items-center gap-1 cursor-pointer transition-all active:scale-95"
                           >
                             🌐 {site}
                           </button>
                         ))}
                         {allowedSites.length === 0 && (
-                          <span className="text-[10px] text-slate-400 italic">No shortcut items provided. Add them in Options!</span>
+                          <span className="text-[10px] text-neutral-450 italic">No exceptions configured. Add items in settings!</span>
                         )}
                       </div>
                     </div>
@@ -1087,17 +1122,17 @@ export default function App() {
                 </div>
               )}
 
-              {/* RENDER CASE 4: THE EXTENSION SETTINGS DETAILS WINDOW (options.html mock) */}
+              {/* PAGE VIEWPORT CASE 4: EXTENSION OPTIONS INTERACTIVE WINDOW (options.html simulator) */}
               {currentRenderedPage === 'options' && (
-                <div className="flex-1 bg-[#f8fafc] p-4 lg:p-6 overflow-y-auto">
+                <div className="flex-1 bg-neutral-50 dark:bg-[#0a0a0a] p-4 md:p-6 overflow-y-auto transition-colors duration-300">
                   
-                  {/* Option UI title */}
-                  <div className="flex flex-wrap gap-4 items-center justify-between border-b border-[#ebdcb9] pb-4 mb-4 bg-white p-4 rounded-xl border border-[#ebdcb9]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">⚙️</span>
+                  {/* Dashboard top details */}
+                  <div className="flex flex-wrap gap-4 items-center justify-between border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-4 rounded-xl shadow-xs mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl select-none">⚙️</span>
                       <div>
-                        <h2 className="text-sm font-extrabold text-slate-900">Arbor Options Workspace</h2>
-                        <span className="text-[10px] text-slate-500">chrome.storage.local mock controller</span>
+                        <h3 className="text-xs font-bold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">Arbor Options Panel</h3>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">chrome.storage.local emulator database</span>
                       </div>
                     </div>
 
@@ -1112,7 +1147,7 @@ export default function App() {
                           link.download = 'arbor-simulated-settings.json';
                           link.click();
                         }}
-                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] font-bold rounded-md"
+                        className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-[10px] font-mono font-bold rounded-lg border border-neutral-200 dark:border-neutral-800 transition-colors"
                       >
                         Export JSON
                       </button>
@@ -1139,83 +1174,90 @@ export default function App() {
                           };
                           input.click();
                         }}
-                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-[10px] font-bold rounded-md"
+                        className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-[10px] font-mono font-bold rounded-lg border border-neutral-200 dark:border-neutral-800 transition-colors"
                       >
                         Import JSON
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    {/* Left Lists Section */}
-                    <div className="md:col-span-8 flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    {/* Active Rules List Section */}
+                    <div className="md:col-span-8 flex flex-col gap-6">
                       
-                      <div className="bg-white border border-[#ebdcb9] rounded-xl p-4 shadow-2xs">
-                        {/* Tab header buttons */}
-                        <div className="flex border-b border-slate-200 gap-4 mb-4">
+                      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 shadow-xs">
+                        {/* Option Nav tabs bar */}
+                        <div className="flex border-b border-neutral-200 dark:border-neutral-850 gap-4 mb-4">
                           <button
                             onClick={() => setSelectedOptionTab('blocklist')}
                             className={`pb-2.5 font-bold text-xs border-b-2 cursor-pointer transition-colors ${
-                              selectedOptionTab === 'blocklist' ? 'border-emerald-700 text-emerald-800' : 'border-transparent text-slate-400'
+                              selectedOptionTab === 'blocklist' 
+                                ? 'border-neutral-900 text-neutral-900 dark:border-white dark:text-white' 
+                                : 'border-transparent text-neutral-400 dark:text-neutral-500'
                             }`}
                           >
-                            🚫 Blocklist Filter
+                            🚫 Blocklist
                           </button>
                           <button
                             onClick={() => setSelectedOptionTab('allowlist')}
                             className={`pb-2.5 font-bold text-xs border-b-2 cursor-pointer transition-colors ${
-                              selectedOptionTab === 'allowlist' ? 'border-emerald-700 text-emerald-800' : 'border-transparent text-slate-400'
+                              selectedOptionTab === 'allowlist' 
+                                ? 'border-neutral-900 text-neutral-900 dark:border-white dark:text-white' 
+                                : 'border-transparent text-neutral-400 dark:text-neutral-500'
                             }`}
                           >
-                            ✅ Productive Sites
+                            ✅ Productive
                           </button>
                           <button
                             onClick={() => setSelectedOptionTab('exceptions')}
                             className={`pb-2.5 font-bold text-xs border-b-2 cursor-pointer transition-colors ${
-                              selectedOptionTab === 'exceptions' ? 'border-emerald-700 text-emerald-800' : 'border-transparent text-slate-400'
+                              selectedOptionTab === 'exceptions' 
+                                ? 'border-neutral-900 text-neutral-900 dark:border-white dark:text-white' 
+                                : 'border-transparent text-neutral-400 dark:text-neutral-500'
                             }`}
                           >
-                            🎓 Smart Exceptions
+                            🎓 Exceptions
                           </button>
                         </div>
 
-                        {/* Blocklist tab rendering */}
+                        {/* Blocklist Tab panel */}
                         {selectedOptionTab === 'blocklist' && (
                           <div className="flex flex-col gap-3">
-                            <p className="text-[11px] text-slate-400">Attempts to visit these pages during an active session will trigger block overrides:</p>
+                            <p className="text-[10px] text-neutral-450 dark:text-neutral-500 font-mono">Social networks and feeds intercepted during active focus cycles:</p>
                             
                             <div className="flex gap-2">
                               <input 
                                 type="text"
-                                placeholder="e.g. reddit.com, instagram.com"
+                                placeholder="e.g. reddit.com, facebook.com"
                                 value={newBlockedUrl}
                                 onChange={(e) => setNewBlockedUrl(e.target.value)}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="flex-1 text-xs border border-slate-200 bg-slate-50 focus:bg-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                                className="flex-1 text-xs border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f0f0f] text-neutral-850 dark:text-neutral-200 px-3 py-1.5 rounded-lg disabled:opacity-50 font-mono focus:outline-hidden"
                               />
                               <button 
                                 onClick={handleAddBlocked}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0"
+                                className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-100 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
                               >
-                                <Plus className="w-3.5 h-3.5" /> Clear Domain
+                                <Plus className="w-3.5 h-3.5" /> Block Domain
                               </button>
                             </div>
 
                             {focusSession.isActive && settings.strictMode && (
-                              <div className="p-2.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold rounded-lg">
-                                🔒 Strict Focus Mode is active! Modifications are frozen until session completes.
+                              <div className="p-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] rounded-lg flex items-center gap-1.5">
+                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                Blocker is locked under active focus mode.
                               </div>
                             )}
 
-                            <ul className="border border-slate-200 rounded-lg max-h-44 overflow-y-auto divide-y divide-slate-100 bg-[#fbfbfc]">
+                            <ul className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-40 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-855 bg-neutral-50/50 dark:bg-black font-mono text-[11px]">
                               {blockedSites.map((site, index) => (
-                                <li key={site} className="px-3.5 py-2 flex items-center justify-between text-xs font-mono">
-                                  <span className="text-slate-700">{site}</span>
+                                <li key={site} className="px-3.5 py-2 flex items-center justify-between">
+                                  <span className="text-neutral-700 dark:text-neutral-350">{site}</span>
                                   {!(focusSession.isActive && settings.strictMode) && (
                                     <button 
                                       onClick={() => handleDeleteBlocked(index)}
-                                      className="text-slate-405 hover:text-red-500"
+                                      className="text-neutral-400 hover:text-red-500 transition-colors"
                                       title="Delete"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1224,16 +1266,16 @@ export default function App() {
                                 </li>
                               ))}
                               {blockedSites.length === 0 && (
-                                <li className="p-6 text-slate-400 italic text-center text-xs">No blocked domains. Click free!</li>
+                                <li className="p-6 text-neutral-450 italic text-center text-xs">No blocked domains. Click free!</li>
                               )}
                             </ul>
                           </div>
                         )}
 
-                        {/* Allowlist Tab */}
+                        {/* Allowlist tab panel */}
                         {selectedOptionTab === 'allowlist' && (
                           <div className="flex flex-col gap-3">
-                            <p className="text-[11px] text-slate-400">Designate constructive work portals that bypass check constraints and render shortcut cards:</p>
+                            <p className="text-[10px] text-neutral-450 dark:text-neutral-500 font-mono font-semibold">Exempted productive platforms rendering on blocker shortcuts panel:</p>
                             
                             <div className="flex gap-2">
                               <input 
@@ -1242,25 +1284,25 @@ export default function App() {
                                 value={newAllowedUrl}
                                 onChange={(e) => setNewAllowedUrl(e.target.value)}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="flex-1 text-xs border border-slate-200 bg-slate-50 focus:bg-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                                className="flex-1 text-xs border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f0f0f] text-neutral-850 dark:text-neutral-200 px-3 py-1.5 rounded-lg disabled:opacity-50 font-mono focus:outline-hidden"
                               />
                               <button 
                                 onClick={handleAddAllowed}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0"
+                                className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-100 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
                               >
-                                <Plus className="w-3.5 h-3.5" /> Ensure Domain
+                                <Plus className="w-3.5 h-3.5" /> Allow Domain
                               </button>
                             </div>
 
-                            <ul className="border border-slate-200 rounded-lg max-h-44 overflow-y-auto divide-y divide-slate-100 bg-[#fbfbfc]">
+                            <ul className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-40 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-855 bg-neutral-50/50 dark:bg-black font-mono text-[11px]">
                               {allowedSites.map((site, index) => (
-                                <li key={site} className="px-3.5 py-2 flex items-center justify-between text-xs font-mono">
-                                  <span className="text-slate-700">{site}</span>
+                                <li key={site} className="px-3.5 py-2 flex items-center justify-between">
+                                  <span className="text-neutral-700 dark:text-neutral-355">{site}</span>
                                   {!(focusSession.isActive && settings.strictMode) && (
                                     <button 
                                       onClick={() => handleDeleteAllowed(index)}
-                                      className="text-slate-405 hover:text-red-500"
+                                      className="text-neutral-400 hover:text-red-500 transition-colors"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1271,11 +1313,11 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Smart Exceptions tab */}
+                        {/* Smart Exceptions tab panel */}
                         {selectedOptionTab === 'exceptions' && (
                           <div className="flex flex-col gap-3">
-                            <p className="text-[11px] text-slate-400">
-                              Bypass block filters for educational paths on blacklisted sites (e.g. allow only takeuforward playlist on youtube.com):
+                            <p className="text-[10px] text-neutral-450 dark:text-neutral-500 font-mono leading-normal">
+                              Granular paths to allow specific studies inside blocked networks (e.g. playlist directories):
                             </p>
                             
                             <div className="flex gap-2">
@@ -1285,59 +1327,59 @@ export default function App() {
                                 value={newExceptionPath}
                                 onChange={(e) => setNewExceptionPath(e.target.value)}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="flex-1 text-xs border border-slate-200 bg-slate-50 focus:bg-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                                className="flex-1 text-xs border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f0f0f] text-neutral-855 dark:text-neutral-200 px-3 py-1.5 rounded-lg disabled:opacity-50 font-mono focus:outline-hidden"
                               />
                               <button 
                                 onClick={handleAddException}
                                 disabled={focusSession.isActive && settings.strictMode}
-                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0"
+                                className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-100 disabled:opacity-50 text-white rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
                               >
                                 <Plus className="w-3.5 h-3.5" /> Permit Path
                               </button>
                             </div>
 
-                            <ul className="border border-slate-200 rounded-lg max-h-44 overflow-y-auto divide-y divide-slate-100 bg-[#fbfbfc]">
+                            <ul className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-40 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-855 bg-neutral-50/50 dark:bg-black font-mono text-[11px]">
                               {allowedExceptions.map((exc, index) => (
-                                <li key={exc} className="px-3.5 py-2 flex items-center justify-between text-xs font-mono">
-                                  <span className="text-slate-700">{exc}</span>
+                                <li key={exc} className="px-3.5 py-2 flex items-center justify-between">
+                                  <span className="text-neutral-700 dark:text-neutral-355">{exc}</span>
                                   {!(focusSession.isActive && settings.strictMode) && (
                                     <button 
                                       onClick={() => handleDeleteException(index)}
-                                      className="text-slate-405 hover:text-red-500"
+                                      className="text-neutral-400 hover:text-red-500 transition-colors"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   )}
-                                retention-</li>
+                                </li>
                               ))}
                             </ul>
                           </div>
                         )}
                       </div>
 
-                      {/* Custom Motivation Layout settings */}
-                      <div className="bg-white border border-[#ebdcb9] rounded-xl p-4">
-                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3">Custom Block Page Copy</h3>
+                      {/* Custom Motivation text configuration */}
+                      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 shadow-xs">
+                        <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-3 font-mono">Custom Redirect Display Copy</h4>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-semibold text-slate-400">Header Title text</label>
+                            <label className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 font-mono">HEADER TEXT</label>
                             <input 
                               type="text" 
                               value={expTitleInput}
                               onChange={(e) => setExpTitleInput(e.target.value)}
                               placeholder="Stay Focused, Grow Big!"
-                              className="text-xs border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700"
+                              className="text-xs border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f0f0f] text-neutral-800 dark:text-neutral-200 px-3 py-1.5 rounded-lg focus:outline-hidden"
                             />
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-semibold text-slate-400">Sub-headline Description</label>
+                            <label className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 font-mono">BODY DESCRIPTION</label>
                             <textarea 
                               value={expSubInput}
                               onChange={(e) => setExpSubInput(e.target.value)}
                               rows={2}
                               placeholder="Your digital crops depend on you..."
-                              className="text-xs border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700"
+                              className="text-xs border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#0f0f0f] text-neutral-800 dark:text-neutral-200 px-3 py-1.5 rounded-lg focus:outline-hidden"
                             />
                           </div>
                         </div>
@@ -1345,27 +1387,28 @@ export default function App() {
                         <button 
                           onClick={handleSaveMotivationStyle}
                           disabled={focusSession.isActive && settings.strictMode}
-                          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold font-[#font-sans] disabled:opacity-50 cursor-pointer"
+                          className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-100 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
-                          Update Block Screen Text
+                          Update Motivation Copy
                         </button>
                       </div>
                     </div>
 
-                    {/* Right options sidebar details */}
-                    <div className="md:col-span-4 flex flex-col gap-4">
+                    {/* Right settings sidebar */}
+                    <div className="md:col-span-4 flex flex-col gap-6">
+                      
                       {/* Configuration modules */}
-                      <div className="bg-white border border-[#ebdcb9] rounded-xl p-4">
-                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3">Configuration Modules</h3>
+                      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 shadow-xs">
+                        <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-3 font-mono">Modules</h4>
                         
                         <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                          <div className="flex items-center justify-between gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-900">
                             <div>
-                              <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                                <Shield className="w-3.5 h-3.5 text-emerald-600" />
-                                Strict Blocker Mode
+                              <span className="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1">
+                                <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                                Strict Mode
                               </span>
-                              <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">Locks blocklists while timer counts down.</p>
+                              <p className="text-[9px] text-neutral-400 dark:text-neutral-500 mt-0.5 leading-normal">Freezes blocklist edits during focus timers.</p>
                             </div>
                             <input 
                               type="checkbox"
@@ -1377,58 +1420,58 @@ export default function App() {
                                 }
                                 setSettings(prev => ({ ...prev, strictMode: e.target.checked }));
                               }}
-                              className="w-4 h-4 accent-emerald-700"
+                              className="w-4 h-4 accent-emerald-500 cursor-pointer"
                             />
                           </div>
 
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center justify-between gap-3">
                             <div>
-                              <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                                <Volume2 className="w-3.5 h-3.5 text-emerald-600" />
-                                Audio Alarms
+                              <span className="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1">
+                                <Volume2 className="w-3.5 h-3.5 text-emerald-500" />
+                                Sound Alerts
                               </span>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Plays audio on timer completions.</p>
+                              <p className="text-[9px] text-neutral-400 dark:text-neutral-500 mt-0.5 leading-normal">Chimes synthesized Web Audio signals on complete focus.</p>
                             </div>
                             <input 
                               type="checkbox"
                               checked={settings.soundEnabled}
                               onChange={(e) => setSettings(prev => ({ ...prev, soundEnabled: e.target.checked }))}
-                              className="w-4 h-4 accent-emerald-700"
+                              className="w-4 h-4 accent-emerald-500 cursor-pointer"
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* Cumulative metrics stats */}
-                      <div className="bg-white border border-[#ebdcb9] rounded-xl p-4">
-                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3">Forest Achievements</h3>
+                      {/* Statistical logs */}
+                      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 shadow-xs">
+                        <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-3 font-mono font-semibold">Achievements</h4>
 
-                        <div className="grid grid-cols-2 gap-2 mb-3.5">
-                          <div className="bg-[#fcfbfc] border border-slate-150 p-2.5 rounded-lg text-center">
-                            <span className="text-xl font-bold text-slate-800 block">{stats.completedSessions}</span>
-                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Completed Trees</span>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-850 p-2.5 rounded-lg text-center">
+                            <span className="text-lg font-bold text-neutral-900 dark:text-white block font-mono">{stats.completedSessions}</span>
+                            <span className="text-[9px] text-neutral-400 uppercase font-mono tracking-wide">Matured</span>
                           </div>
-                          <div className="bg-[#fcfbfc] border border-slate-150 p-2.5 rounded-lg text-center">
-                            <span className="text-xl font-bold text-slate-800 block">{stats.totalFocusMinutes}m</span>
-                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Focus Duration</span>
+                          <div className="bg-neutral-50 dark:bg-neutral-955 border border-neutral-200 dark:border-neutral-850 p-2.5 rounded-lg text-center">
+                            <span className="text-lg font-bold text-neutral-900 dark:text-white block font-mono">{stats.totalFocusMinutes}m</span>
+                            <span className="text-[9px] text-neutral-400 uppercase font-mono tracking-wide">Minutes</span>
                           </div>
-                          <div className="bg-[#fcfbfc] border border-slate-150 p-2.5 rounded-lg text-center">
-                            <span className="text-xl font-bold text-slate-800 block">{stats.currentStreak} 🔥</span>
-                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider font-semibold">Active Streak</span>
+                          <div className="bg-neutral-50 dark:bg-neutral-955 border border-neutral-200 dark:border-neutral-850 p-2.5 rounded-lg text-center">
+                            <span className="text-lg font-bold text-neutral-900 dark:text-white block font-mono">{stats.currentStreak} 🔥</span>
+                            <span className="text-[9px] text-neutral-400 uppercase font-mono tracking-wide">Streak</span>
                           </div>
-                          <div className="bg-[#fcfbfc] border border-slate-150 p-2.5 rounded-lg text-center">
-                            <span className="text-xl font-bold text-slate-800 block">{stats.bestStreak} 🔥</span>
-                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider font-semibold">Best Streak</span>
+                          <div className="bg-neutral-50 dark:bg-neutral-955 border border-neutral-200 dark:border-neutral-850 p-2.5 rounded-lg text-center">
+                            <span className="text-lg font-bold text-neutral-900 dark:text-white block font-mono">{stats.bestStreak} 🔥</span>
+                            <span className="text-[9px] text-neutral-400 uppercase font-mono tracking-wide">Best</span>
                           </div>
                         </div>
 
-                        <div className="bg-slate-50 border border-slate-150 rounded-lg p-2 text-center text-xs font-semibold mb-3">
-                          ⚡ Intercepted Attempts: <span className="text-red-700 font-bold">{stats.distractionAttempts}</span>
+                        <div className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 rounded-lg p-2 text-center text-[10px] font-mono font-semibold mb-3 border border-neutral-200 dark:border-neutral-850">
+                          Intercepted Distractions: <span className="text-red-500 font-bold font-sans text-xs ml-1">{stats.distractionAttempts}</span>
                         </div>
 
                         <button 
                           onClick={handleResetSimulatorStats}
-                          className="w-full py-2 border border-rose-100 hover:bg-rose-50 text-rose-700 text-[10px] font-bold rounded-lg cursor-pointer transition-all"
+                          className="w-full py-2 border border-red-500/20 hover:bg-red-500/5 text-red-500 text-[10px] font-bold rounded-lg cursor-pointer transition-all uppercase tracking-wider font-mono"
                         >
                           Clear Statistical Logs
                         </button>
@@ -1441,58 +1484,66 @@ export default function App() {
           </div>
         </div>
 
-        {/* ================= RIGHT AREA: ACTIVE FILE INSPECTOR & CODES HUB (5 Columns) ================= */}
+        {/* ================= RIGHT COLUMN: CODE EDITOR & EXTENSION DIRECTORY INSPECTOR (5/12 Cols) ================= */}
         <div className="lg:col-span-5 flex flex-col gap-6" id="code-inspector-pane">
-          
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm text-slate-300 overflow-hidden flex flex-col flex-1 min-h-[580px]">
-            {/* Folder Header bar */}
-            <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-[#0b0f19] border border-neutral-800 rounded-2xl shadow-vercel-4 dark:shadow-vercel-dark-5 text-slate-355 overflow-hidden flex flex-col min-h-[640px]">
+            
+            {/* Terminal Workspace title bar */}
+            <div className="bg-[#070b13] px-4 py-3.5 border-b border-slate-900 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileCode className="w-4 h-4 text-emerald-500" />
-                <span className="font-mono text-xs font-semibold tracking-wide text-slate-200">UNPACKED DIRECTORY VIEWER</span>
+                <span className="font-mono text-xs font-semibold tracking-wide text-slate-200">
+                  ARBOR CODEBASE EXPORTER
+                </span>
               </div>
-              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">manifest_v3</span>
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">
+                MANIFEST V3
+              </span>
             </div>
 
-            {/* Sidebar Folder list and Editor viewport core */}
-            <div className="flex-1 flex flex-col sm:flex-row h-full min-h-[400px]">
-              {/* File list side panel of repo */}
-              <div className="w-full sm:w-44 bg-slate-950 border-r border-slate-850 p-2 flex flex-col gap-1 overflow-y-auto">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600 px-2 py-1 select-none">Folder: arbor-extension</span>
+            {/* Editor Workspace with Sidebar File explorer */}
+            <div className="flex-1 flex flex-col sm:flex-row h-full min-h-[460px]">
+              
+              {/* Sidebar File explorer pane */}
+              <div className="w-full sm:w-44 bg-[#070a11] border-b sm:border-b-0 sm:border-r border-slate-900 p-2 flex flex-col gap-1 overflow-y-auto">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 px-2.5 py-1 select-none font-mono">
+                  Workspace
+                </span>
+                
                 {EXTENSION_FILES.map(file => (
                   <button
                     key={file.name}
                     onClick={() => setSelectedFile(file)}
-                    className={`px-3 py-1.5 rounded-lg text-left font-mono text-xs cursor-pointer flex items-center gap-2 transition-all ${
+                    className={`px-2.5 py-1.5 rounded-lg text-left font-mono text-[11px] cursor-pointer flex items-center gap-2 transition-all ${
                       selectedFile.name === file.name 
-                        ? 'bg-emerald-950/75 border border-emerald-800 text-emerald-400 font-bold' 
+                        ? 'bg-emerald-955/40 text-emerald-400 font-semibold border border-emerald-800/40' 
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border border-transparent'
                     }`}
                   >
-                    <span className="text-[10px]" role="img" aria-label="icon">
-                      {file.name.endsWith('.json') ? '⚙️' : file.name.endsWith('.js') ? '📜' : file.name.endsWith('.html') ? '🌐' : '📖'}
+                    <span className="text-xs shrink-0 select-none">
+                      {file.name.endsWith('.json') ? <FileJson className="w-3.5 h-3.5 text-blue-400" /> : file.name.endsWith('.js') ? <span className="text-yellow-500">📜</span> : <span className="text-blue-500">🌐</span>}
                     </span>
                     <span className="truncate">{file.name}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Code visual pre-formatted content view area */}
-              <div className="flex-1 bg-[#0b0f19] flex flex-col relative overflow-hidden">
-                {/* Editor subheader info */}
-                <div className="bg-[#111625] px-3.5 py-2 border-b border-slate-850/80 flex items-center justify-between text-slate-400">
-                  <span className="text-[10px] font-mono font-medium text-slate-400 flex items-center gap-1">
+              {/* Code text viewing editor */}
+              <div className="flex-1 bg-[#090d16] flex flex-col relative overflow-hidden">
+                {/* Editor secondary info header */}
+                <div className="bg-[#05080e] px-4 py-2 border-b border-slate-900/80 flex items-center justify-between text-slate-400">
+                  <span className="text-[10px] font-mono text-slate-450 flex items-center gap-1.5">
                     <ChevronRight className="w-3.5 h-3.5 text-emerald-500" />
                     arbor-blocker/ {selectedFile.path}
                   </span>
 
                   <button
                     onClick={handleCopyFileToClipboard}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 text-[10px] font-semibold text-slate-300 hover:bg-slate-700 active:scale-95 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 text-[10px] font-mono font-semibold text-slate-200 hover:bg-slate-700 active:scale-95 transition-all cursor-pointer border border-slate-750"
                   >
                     {copiedFile ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-500 animate-pulse" />
+                        <Check className="w-3 h-3 text-emerald-400 animate-pulse" />
                         Copied
                       </>
                     ) : (
@@ -1504,21 +1555,21 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Main preformatted block */}
-                <div className="flex-1 p-4 overflow-auto font-mono text-xs leading-relaxed text-[#a9b2c3] bg-[#0c1020]">
-                  <pre className="whitespace-pre scrollbar-thin">
+                {/* Styled Syntax mock editor container */}
+                <div className="flex-1 p-4 overflow-auto font-mono text-[11px] leading-relaxed text-[#c0caf5] bg-[#080b13] terminal-scrollbar">
+                  <pre className="whitespace-pre">
                     <code>{selectedFile.content}</code>
                   </pre>
                 </div>
               </div>
             </div>
 
-            {/* Downloader controller footer block */}
-            <div className="bg-slate-950 border-t border-slate-850 p-4 flex flex-col gap-3">
+            {/* Bottom code metadata details box */}
+            <div className="bg-[#05080f] border-t border-slate-900 p-4 flex flex-col gap-3">
               <div className="flex items-start gap-2.5">
                 <Info className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
-                  The compiled source repository contains the modular Chrome-compliant MV3 configuration rules, service worker, and blocks pages. No dependencies needed.
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  The compiled source repository contains the modular Chrome-compliant MV3 configuration rules, service worker, and blocks pages. Download to load locally.
                 </p>
               </div>
 
@@ -1526,73 +1577,62 @@ export default function App() {
                 <button
                   onClick={handleDownloadUnpackedExtension}
                   disabled={isZipping}
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-700/15"
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-neutral-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
-                  {isZipping ? (
-                    <span className="animate-spin text-sm">🌱 Packing...</span>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download Completed ZIP Folder
-                    </>
-                  )}
+                  <Download className="w-4 h-4 text-neutral-950" />
+                  {isZipping ? "Bundling files..." : "Compile & Download ZIP Exporter"}
                 </button>
-                <a 
-                  href="#how-to-load-unpacked"
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-850 hover:bg-slate-900 text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all text-center font-sans"
+                <button
+                  onClick={() => {
+                    const target = document.getElementById('how-to-load-unpacked');
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer border border-slate-750"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-slate-500" />
-                  Read Setup Instructions
-                </a>
+                  Load Manual
+                </button>
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* --- Step-by-Step Developer instructions section --- */}
-      <section className="bg-white border-t border-[#ebdcb9] mt-12 py-12 px-6" id="how-to-load-unpacked">
+      {/* --- Step-by-Step Developer Loading Instructions --- */}
+      <section className="border-t border-neutral-200/80 dark:border-neutral-800/80 bg-white/40 dark:bg-black/40 mt-12 py-12 px-6 transition-colors duration-300" id="how-to-load-unpacked">
         <div className="max-w-4xl w-full mx-auto">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-3xl">🛠️</span>
+          <div className="flex items-center gap-3 mb-8">
+            <span className="text-3xl select-none">🛠️</span>
             <div>
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">How to Install Unpacked Extension in Chrome</h2>
-              <p className="text-xs text-slate-400">Step-by-step developer load guide for Windows, MacOS, and ChromeOS</p>
+              <h3 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                How to Install Unpacked Blocker.
+              </h3>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">Load the compiled Manifest V3 repository directly into Google Chrome Developer mode.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 border border-[#eeddbb] bg-[#fafbfc]/40 rounded-2xl flex flex-col">
-              <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center mb-3">1</span>
-              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-1">Download Zip bundle</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Click <span className="font-semibold text-slate-800">"Download Unpacked ZIP"</span> above of this portal to export the completed repository containing pre-mapped canvas circular asset icons. Extract the folders on your storage space.
+            <div className="p-5 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black/60 rounded-2xl flex flex-col shadow-xs hover:scale-[1.01] transition-all">
+              <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold flex items-center justify-center mb-3.5 border border-emerald-500/20">1</span>
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-2 font-mono">Download bundle</h4>
+              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 leading-relaxed">
+                Click <span className="font-semibold text-neutral-800 dark:text-neutral-200">"Download Unpacked ZIP"</span> in the workspace to package canvas asset icons and Manifest rules. Extract the file directory on disk.
               </p>
             </div>
 
-            <div className="p-5 border border-[#eeddbb] bg-[#fafbfc]/40 rounded-2xl flex flex-col">
-              <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center mb-3">2</span>
-              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-1">Toggle Dev Mode</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                In Google Chrome, navigate to <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono text-[10px]">chrome://extensions/</code> in the browser address. Locate and turn on the <span className="font-semibold text-slate-800">Developer mode</span> slider in the upper right.
+            <div className="p-5 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black/60 rounded-2xl flex flex-col shadow-xs hover:scale-[1.01] transition-all">
+              <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold flex items-center justify-center mb-3.5 border border-emerald-500/20">2</span>
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-2 font-mono">Toggle Dev Mode</h4>
+              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 leading-relaxed">
+                Navigate to <code className="bg-neutral-100 dark:bg-neutral-900 px-1 py-0.5 rounded text-neutral-700 dark:text-neutral-300 font-mono text-[10px]">chrome://extensions/</code> in the browser URL bar. Toggle the <span className="font-semibold text-neutral-800 dark:text-neutral-200">Developer mode</span> switch in the top-right.
               </p>
             </div>
 
-            <div className="p-5 border border-[#eeddbb] bg-[#fafbfc]/40 rounded-2xl flex flex-col">
-              <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center mb-3">3</span>
-              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-1">Load Unpacked</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Tap the <span className="font-semibold text-slate-800">"Load unpacked"</span> button in top-left, select the extracted folder directory on disk, and pin the newly grown seedling icon to begin focusing!
+            <div className="p-5 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black/60 rounded-2xl flex flex-col shadow-xs hover:scale-[1.01] transition-all">
+              <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold flex items-center justify-center mb-3.5 border border-emerald-500/20">3</span>
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-2 font-mono">Load Unpacked</h4>
+              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 leading-relaxed">
+                Click <span className="font-semibold text-neutral-800 dark:text-neutral-200">"Load unpacked"</span> and select your extracted directory. Pin the Arbor leaf icon to the browser extension bar to begin studies!
               </p>
-            </div>
-          </div>
-
-          {/* Clean disclaimer footnote */}
-          <div className="mt-8 p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
-            <span className="text-lg">💡</span>
-            <div className="text-xs leading-relaxed text-slate-500">
-              <span className="font-bold text-slate-700">Developer Note on Sandbox Permissions:</span> Arbor Blocker adheres to strict declarative net request scopes. The included permissions <code className="font-mono bg-slate-100 text-[10px] px-1 py-0.5 rounded">declarativeNetRequest</code> and <code className="font-mono bg-slate-100 text-[10px] px-1 py-0.5 rounded">storage</code> are default secure Chromium controls that run locally without reporting server telemetry logs.
             </div>
           </div>
         </div>
@@ -1605,24 +1645,23 @@ export default function App() {
             initial={{ opacity: 0, x: 24, y: 0 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-            className="fixed bottom-6 right-6 z-50 w-80 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl text-white flex items-start gap-3"
+            className="fixed bottom-6 right-6 z-50 w-80 bg-neutral-950 dark:bg-black border border-neutral-850 rounded-xl p-4 shadow-vercel-4 dark:shadow-vercel-dark-5 text-white flex items-start gap-3"
           >
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-lg shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-lg shrink-0 select-none">
               🌳
             </div>
             <div className="flex-1">
-              <h4 className="text-xs font-bold tracking-tight text-white">{notification.title}</h4>
-              <p className="text-[11px] text-slate-300 mt-1 leading-normal">{notification.text}</p>
+              <h5 className="text-xs font-bold tracking-tight text-white">{notification.title}</h5>
+              <p className="text-[11px] text-neutral-300 mt-1 leading-normal">{notification.text}</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Footer copyright */}
-      <footer className="bg-slate-950 border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-        <p>Arbor Blocker Workspace — Powered by Manifest V3 & Single-Click Exporters. Created by AI Studio build. © 2026.</p>
+      {/* Sticky Footer */}
+      <footer className="bg-neutral-950 dark:bg-black border-t border-neutral-900 py-6 text-center text-[10px] text-neutral-500 font-mono tracking-wide transition-colors duration-300">
+        <p>Arbor Chrome Workspace — Powered by Manifest V3 & Single-Click Exporters. © 2026.</p>
       </footer>
     </div>
   );
 }
-
