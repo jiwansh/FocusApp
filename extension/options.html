@@ -93,6 +93,23 @@
               <input type="text" id="setting-redirect-title" class="text-input" placeholder="Get Back to Work!">
             </div>
 
+            <!-- Motivational Theme Selector -->
+            <div class="form-group">
+              <label for="setting-redirect-theme" class="form-label">Motivation Theme / Image</label>
+              <select id="setting-redirect-theme" class="text-input">
+                <option value="default">🤫 Default Warning Emoji</option>
+                <option value="ronaldo">⚽ Cristiano Ronaldo Focus</option>
+                <option value="gareeb">💸 Gareeb Hi Rahoge</option>
+                <option value="custom">🖼️ Custom Image URL</option>
+              </select>
+            </div>
+
+            <!-- Custom Image Input (visible only when custom is selected) -->
+            <div class="form-group text-span-2 hidden" id="custom-image-url-group">
+              <label for="setting-redirect-image-url" class="form-label">Custom Image URL</label>
+              <input type="text" id="setting-redirect-image-url" class="text-input" placeholder="https://example.com/image.jpg">
+            </div>
+
             <div class="form-group text-span-2">
               <label for="setting-redirect-sub" class="form-label">Sub-headline / Encouragement</label>
               <textarea id="setting-redirect-sub" class="text-input textarea-input" rows="2" placeholder="Your tree is relying on you..."></textarea>

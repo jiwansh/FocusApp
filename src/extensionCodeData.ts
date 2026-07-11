@@ -1120,6 +1120,19 @@ input[type="range"] {
               <input type="text" id="setting-redirect-title" class="text-input">
             </div>
             <div class="form-group">
+              <label for="setting-redirect-theme" class="form-label">Motivation Theme / Image</label>
+              <select id="setting-redirect-theme" class="text-input">
+                <option value="default">🤫 Default Warning Emoji</option>
+                <option value="ronaldo">⚽ Cristiano Ronaldo Focus</option>
+                <option value="gareeb">💸 Gareeb Hi Rahoge</option>
+                <option value="custom">🖼️ Custom Image URL</option>
+              </select>
+            </div>
+            <div class="form-group text-span-2 hidden" id="custom-image-url-group">
+              <label for="setting-redirect-image-url" class="form-label">Custom Image URL</label>
+              <input type="text" id="setting-redirect-image-url" class="text-input" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group text-span-2">
               <label for="setting-redirect-sub" class="form-label">Encouragement Subtext</label>
               <textarea id="setting-redirect-sub" class="text-input textarea-input" rows="2"></textarea>
             </div>
@@ -1215,6 +1228,9 @@ input[type="range"] {
 
   const settingRedirectTitle = document.getElementById('setting-redirect-title');
   const settingRedirectSub = document.getElementById('setting-redirect-sub');
+  const settingRedirectTheme = document.getElementById('setting-redirect-theme');
+  const settingRedirectImageUrl = document.getElementById('setting-redirect-image-url');
+  const customImageUrlGroup = document.getElementById('custom-image-url-group');
   const saveExperienceBtn = document.getElementById('save-experience-btn');
 
   const strictModeToggle = document.getElementById('setting-strict-mode');
@@ -1275,6 +1291,19 @@ input[type="range"] {
     }
     if (settingRedirectSub && document.activeElement !== settingRedirectSub) {
       settingRedirectSub.value = settings.redirectSubtitle || "";
+    }
+    if (settingRedirectTheme) {
+      settingRedirectTheme.value = settings.redirectTheme || "default";
+      if (customImageUrlGroup) {
+        if (settingRedirectTheme.value === 'custom') {
+          customImageUrlGroup.classList.remove('hidden');
+        } else {
+          customImageUrlGroup.classList.add('hidden');
+        }
+      }
+    }
+    if (settingRedirectImageUrl) {
+      settingRedirectImageUrl.value = settings.redirectImageUrl || "";
     }
 
     if (strictModeToggle) strictModeToggle.checked = strictModeOn;
@@ -1412,8 +1441,22 @@ input[type="range"] {
       const settings = data.settings || {};
       settings.redirectTitle = settingRedirectTitle.value;
       settings.redirectSubtitle = settingRedirectSub.value;
+      settings.redirectTheme = settingRedirectTheme ? settingRedirectTheme.value : "default";
+      settings.redirectImageUrl = settingRedirectImageUrl ? settingRedirectImageUrl.value : "";
       await chrome.storage.local.set({ settings });
       alert("Redirect config updated.");
+    });
+  }
+
+  if (settingRedirectTheme) {
+    settingRedirectTheme.addEventListener('change', (e) => {
+      if (customImageUrlGroup) {
+        if (e.target.value === 'custom') {
+          customImageUrlGroup.classList.remove('hidden');
+        } else {
+          customImageUrlGroup.classList.add('hidden');
+        }
+      }
     });
   }
 

@@ -57,6 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initial countdown setup
     if (activeSession && activeSession.isActive) {
+      // Set custom text and image themes
+      renderCustomExperience(data.settings || {});
       updateBlockedTick();
       countdownInterval = setInterval(updateBlockedTick, 1000);
       
@@ -89,6 +91,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         shortcutsGrid.appendChild(a);
       }
     });
+  }
+
+  // Set and render the user selected custom title, subtitle, and image theme on load
+  function renderCustomExperience(settings) {
+    const memeHeadline = document.getElementById('blocked-meme-headline');
+    const memeSubheadline = document.getElementById('blocked-meme-subheadline');
+    const memeText = document.getElementById('blocked-meme-text');
+    
+    const memeEmoji = document.getElementById('blocked-meme-emoji');
+    const memeImageArea = document.getElementById('blocked-meme-image-area');
+    const memeImage = document.getElementById('blocked-meme-image');
+
+    // Only update content if session is active
+    if (activeSession && activeSession.isActive) {
+      if (memeHeadline) {
+        memeHeadline.textContent = settings.redirectTitle || "पढ़ लो बेटा!";
+      }
+      if (memeSubheadline) {
+        memeSubheadline.textContent = "FOCUS RUNNING";
+      }
+      if (memeText) {
+        memeText.textContent = settings.redirectSubtitle || "Your digital tree relies on your effort. Keep cultivating your focus and shield yourself from trivial distractions!";
+      }
+
+      // Handle Motivational Image/Emoji Themes
+      const theme = settings.redirectTheme || "default";
+      if (theme === 'default') {
+        if (memeEmoji) memeEmoji.classList.remove('hidden');
+        if (memeImageArea) memeImageArea.classList.add('hidden');
+      } else {
+        if (memeEmoji) memeEmoji.classList.add('hidden');
+        if (memeImageArea) memeImageArea.classList.remove('hidden');
+        
+        let src = "";
+        if (theme === 'ronaldo') {
+          // Cristiano Ronaldo Pointing/Motivational Action Image
+          src = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&auto=format&fit=crop";
+        } else if (theme === 'gareeb') {
+          // Gareeb Hi Rahoge (Stark reminder of hard work & finance)
+          src = "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=500&auto=format&fit=crop";
+        } else if (theme === 'custom') {
+          // Custom User uploaded image link
+          src = settings.redirectImageUrl || "";
+        }
+        
+        if (memeImage) memeImage.src = src;
+      }
+    }
   }
 
   function updateBlockedTick() {
@@ -129,13 +179,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (blockedTreeDisplay) blockedTreeDisplay.textContent = "🌳✨";
     if (blockedTreeLabel) blockedTreeLabel.textContent = "Focus complete! Your tree is fully grown.";
     
-    const headline = document.querySelector('.meme-headline');
-    const subheadline = document.querySelector('.meme-subheadline');
-    const text = document.querySelector('.meme-text');
+    const headline = document.getElementById('blocked-meme-headline');
+    const subheadline = document.getElementById('blocked-meme-subheadline');
+    const text = document.getElementById('blocked-meme-text');
+    const emoji = document.getElementById('blocked-meme-emoji');
+    const imageArea = document.getElementById('blocked-meme-image-area');
     
     if (headline) headline.textContent = "Shabash! 🎉";
     if (subheadline) subheadline.textContent = "WELL DONE!";
     if (text) text.textContent = "You survived the distraction block and grew your seedling!";
+    if (emoji) {
+      emoji.textContent = "🥳🎉✨";
+      emoji.classList.remove('hidden');
+    }
+    if (imageArea) imageArea.classList.add('hidden');
     if (soundStatusNotice) soundStatusNotice.style.display = 'none';
   }
 

@@ -18,10 +18,13 @@
 
       <!-- Center Meme / Funny Warning Area -->
       <div class="meme-stage">
-        <div class="meme-emoji">🤫🤫🤫</div>
-        <h1 class="meme-headline">पढ़ लो बेटा!</h1>
-        <h2 class="meme-subheadline">PADH LO BETA!</h2>
-        <p class="meme-text">
+        <div class="meme-emoji" id="blocked-meme-emoji">🤫🤫🤫</div>
+        <div class="meme-image-container hidden" id="blocked-meme-image-area" style="text-align: center; margin-bottom: 15px;">
+          <img src="" id="blocked-meme-image" style="max-width:100%; max-height:220px; border-radius:12px; border:2px solid var(--border-color); object-fit: cover;">
+        </div>
+        <h1 class="meme-headline" id="blocked-meme-headline">पढ़ लो बेटा!</h1>
+        <h2 class="meme-subheadline" id="blocked-meme-subheadline">PADH LO BETA!</h2>
+        <p class="meme-text" id="blocked-meme-text">
           Distraction detected. Your session is <strong>PAUSED</strong> and this alarm will beep until you close this distracting tab!
         </p>
         <div class="sound-alert-bar" id="sound-status-notice">

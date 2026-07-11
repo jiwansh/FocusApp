@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Redirect customization inputs
   const settingRedirectTitle = document.getElementById('setting-redirect-title');
   const settingRedirectSub = document.getElementById('setting-redirect-sub');
+  const settingRedirectTheme = document.getElementById('setting-redirect-theme');
+  const settingRedirectImageUrl = document.getElementById('setting-redirect-image-url');
+  const customImageUrlGroup = document.getElementById('custom-image-url-group');
   const saveExperienceBtn = document.getElementById('save-experience-btn');
 
   // Global settings toggles
@@ -107,6 +110,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (settingRedirectSub && document.activeElement?.id !== 'setting-redirect-sub') {
       settingRedirectSub.value = settings.redirectSubtitle || "";
+    }
+    if (settingRedirectTheme) {
+      settingRedirectTheme.value = settings.redirectTheme || "default";
+      // Show or hide the custom image input container based on selection
+      if (customImageUrlGroup) {
+        if (settingRedirectTheme.value === 'custom') {
+          customImageUrlGroup.classList.remove('hidden');
+        } else {
+          customImageUrlGroup.classList.add('hidden');
+        }
+      }
+    }
+    if (settingRedirectImageUrl) {
+      settingRedirectImageUrl.value = settings.redirectImageUrl || "";
     }
 
     // Toggles
@@ -287,11 +304,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       const data = await chrome.storage.local.get('settings');
       const currentSettings = data.settings || {};
 
+      // Save user custom motivators, selected theme, and custom picture paths
       currentSettings.redirectTitle = settingRedirectTitle.value || "Stay Focused, Grow Big!";
-      currentSettings.redirectSubtitle = settingRedirectSub.value || "Your digital tree rely on your effort.";
+      currentSettings.redirectSubtitle = settingRedirectSub.value || "Your digital tree relies on your effort.";
+      currentSettings.redirectTheme = settingRedirectTheme ? settingRedirectTheme.value : "default";
+      currentSettings.redirectImageUrl = settingRedirectImageUrl ? settingRedirectImageUrl.value : "";
 
       await chrome.storage.local.set({ settings: currentSettings });
-      alert("Redirect styles saved successfully.");
+      alert("Redirect configurations saved successfully.");
+    });
+  }
+
+  // Dynamic selector event listener: shows or hides the custom image URL field
+  if (settingRedirectTheme) {
+    settingRedirectTheme.addEventListener('change', (e) => {
+      if (customImageUrlGroup) {
+        if (e.target.value === 'custom') {
+          customImageUrlGroup.classList.remove('hidden');
+        } else {
+          customImageUrlGroup.classList.add('hidden');
+        }
+      }
     });
   }
 
