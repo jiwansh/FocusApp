@@ -4,6 +4,12 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // --- Synchronize theme preference from storage on load ---
+  chrome.storage.local.get('theme', (data) => {
+    const theme = data.theme || 'dark';
+    document.documentElement.className = theme;
+  });
+
   const blockedTreeDisplay = document.getElementById('blocked-tree-display');
   const blockedTreeLabel = document.getElementById('blocked-tree-label');
   const blockedTimer = document.getElementById('blocked-timer');

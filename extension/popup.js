@@ -4,6 +4,29 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // --- Theme Selection & Persistence ---
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  
+  // Load and apply the user theme preference from Chrome local storage
+  chrome.storage.local.get('theme', (data) => {
+    const theme = data.theme || 'dark'; // Default to Dark mode
+    document.documentElement.className = theme;
+    if (themeToggleBtn) {
+      themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+  });
+
+  // Handle click events to toggle theme states
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      const newTheme = isDark ? 'light' : 'dark';
+      document.documentElement.className = newTheme;
+      chrome.storage.local.set({ theme: newTheme });
+      themeToggleBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+  }
+
   // Elements
   const popupApp = document.getElementById('popup-app');
   const timerSetupSection = document.getElementById('timer-setup-section');

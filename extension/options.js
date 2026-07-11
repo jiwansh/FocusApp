@@ -4,6 +4,12 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // --- Synchronize current theme preference from storage ---
+  chrome.storage.local.get('theme', (data) => {
+    const theme = data.theme || 'dark';
+    document.documentElement.className = theme;
+  });
+
   // Navigation tabs
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
