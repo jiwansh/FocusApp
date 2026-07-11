@@ -1625,6 +1625,15 @@ body {
   color: var(--text-main);
 }
 
+/* Tab panes display rules: show only the active tab, hide others */
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
 .tab-desc {
   font-size: 11px;
   color: var(--text-muted);
